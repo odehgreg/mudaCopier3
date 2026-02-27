@@ -298,13 +298,14 @@ export function AccountsPage() {
                           onClick={() => handleBrokerSelect(broker)}
                           className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center justify-between"
                         >
-                              <p className="font-medium text-gray-900">{broker.name}</p>
-                              <p className="text-xs text-gray-600">
-                                {broker.supported_platforms.join(', ')}
-                              </p>
-                            </div>
-                            {formData.broker_id === broker.id && <Check className="w-4 h-4 text-brand" />}
-                          </button>
+                          <div>
+                            <p className="font-medium text-gray-900">{broker.name}</p>
+                            <p className="text-xs text-gray-600">
+                              {broker.supported_platforms.join(', ')}
+                            </p>
+                          </div>
+                          {formData.broker_id === broker.id && <Check className="w-4 h-4 text-brand" />}
+                        </button>
                         ))
                       ) : (
                         <div className="px-4 py-3 text-center text-gray-500 text-sm">
