@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Check, X, Play, Pause } from 'lucide-react';
+import { Plus, Trash2, Check, X, Play, Pause, Clock, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useTradeCopy, useCopyStatistics } from '../hooks/useTradesCopy';
+import { CopierConfigCard } from '../components/CopierConfigCard';
 
 interface TradingAccount {
   id: string;
@@ -295,66 +297,12 @@ export function CopierPage() {
           </div>
         ) : (
           configs.map((config) => (
-            <div key={config.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-gray-900">
-                      {config.master_account?.account_name || 'Master Account'}
-                    </h3>
-                    <span className="text-xl text-gray-400">→</span>
-                    <h3 className="font-bold text-gray-900">
-                      {config.slave_account?.account_name || 'Slave Account'}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {config.master_account?.broker} ({config.master_account?.platform}) to {config.slave_account?.broker} (
-                    {config.slave_account?.platform})
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleToggleConfig(config.id, config.enabled)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    config.enabled
-                      ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {config.enabled ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600">Lot Multiplier</p>
-                  <p className="font-bold text-gray-900">{config.lot_multiplier}x</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600">Max Daily Loss</p>
-                  <p className="font-bold text-gray-900">${config.max_daily_loss}</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600">Max Trades</p>
-                  <p className="font-bold text-gray-900">{config.max_trades}</p>
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600">Status</p>
-                  <p className={`font-bold ${config.enabled ? 'text-green-600' : 'text-gray-600'}`}>
-                    {config.enabled ? 'Active' : 'Inactive'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  onClick={() => handleDeleteConfig(config.id)}
-                  className="text-red-600 hover:text-red-700 flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-              </div>
-            </div>
+            <CopierConfigCard
+              key={config.id}
+              config={config}
+              onDelete={handleDeleteConfig}
+              onToggle={handleToggleConfig}
+            />
           ))
         )}
       </div>
