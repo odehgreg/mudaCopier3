@@ -69,7 +69,7 @@ export function TradesPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
       </div>
     );
   }
@@ -88,7 +88,7 @@ export function TradesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
             >
               <option value="all">All Statuses</option>
               <option value="open">Open</option>
@@ -99,7 +99,7 @@ export function TradesPage() {
             <select
               value={accountFilter}
               onChange={(e) => setAccountFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
             >
               <option value="all">All Accounts</option>
               {accounts.map(account => (
@@ -185,7 +185,7 @@ export function TradesPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`
                         px-2 py-1 text-xs font-medium rounded-full
-                        ${trade.status === 'open' ? 'bg-blue-50 text-blue-600' : ''}
+                        ${trade.status === 'open' ? 'bg-brand-light text-brand' : ''}
                         ${trade.status === 'closed' ? 'bg-gray-50 text-gray-600' : ''}
                         ${trade.status === 'pending' ? 'bg-yellow-50 text-yellow-600' : ''}
                       `}>

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useTradeCopy, useCopyStatistics } from '../hooks/useTradesCopy';
 import { CopierConfigCard } from '../components/CopierConfigCard';
+import { Modal } from '../components/Modal';
 
 interface TradingAccount {
   id: string;
@@ -149,7 +150,7 @@ export function CopierPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
       </div>
     );
   }
@@ -166,7 +167,7 @@ export function CopierPage() {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors"
         >
           <Plus className="w-5 h-5" />
           Create Copy Link
@@ -186,7 +187,7 @@ export function CopierPage() {
                   value={formData.master_account_id}
                   onChange={(e) => setFormData({ ...formData, master_account_id: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                 >
                   <option value="">Select master account</option>
                   {masterAccounts.map((account) => (
@@ -208,7 +209,7 @@ export function CopierPage() {
                   value={formData.slave_account_id}
                   onChange={(e) => setFormData({ ...formData, slave_account_id: e.target.value })}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                 >
                   <option value="">Select slave account</option>
                   {slaveAccounts.map((account) => (
@@ -230,7 +231,7 @@ export function CopierPage() {
                   step="0.1"
                   min="0.1"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                   placeholder="1.0"
                 />
                 <p className="text-xs text-gray-500 mt-1">Multiply master lot size by this amount</p>
@@ -247,7 +248,7 @@ export function CopierPage() {
                   step="10"
                   min="0"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                   placeholder="1000"
                 />
               </div>
@@ -263,7 +264,7 @@ export function CopierPage() {
                   step="1"
                   min="1"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                   placeholder="10"
                 />
               </div>
@@ -272,7 +273,7 @@ export function CopierPage() {
             <div className="flex gap-3 pt-4 border-t border-gray-200">
               <button
                 type="submit"
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors"
               >
                 <Check className="w-5 h-5" />
                 Create Configuration
@@ -287,8 +288,7 @@ export function CopierPage() {
               </button>
             </div>
           </form>
-        </div>
-      )}
+        </Modal>
 
       <div className="grid grid-cols-1 gap-4">
         {configs.length === 0 ? (

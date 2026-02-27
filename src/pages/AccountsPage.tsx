@@ -3,6 +3,7 @@ import { Plus, Trash2, Check, X, Loader, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { brokerService, Broker, BrokerAccount, BrokerServer } from '../lib/brokerService';
+import { Modal } from '../components/Modal';
 
 interface TradingAccount {
   id: string;
@@ -206,7 +207,7 @@ export function AccountsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
       </div>
     );
   }
@@ -220,90 +221,89 @@ export function AccountsPage() {
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Account
         </button>
       </div>
 
-      {showAddForm && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-6 max-w-2xl">
+      <Modal isOpen={showAddForm} onClose={() => setShowAddForm(false)} title="Add Trading Account">
+        <form onSubmit={handleAddAccount} className="space-y-6">
+          {/* re-use previous form markup, omit duplicate container */}
           <div>
             <h3 className="text-lg font-bold text-gray-900">Account Credentials</h3>
             <p className="text-sm text-gray-600 mt-1">Enter your account details</p>
           </div>
 
-          <form onSubmit={handleAddAccount} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.account_name}
-                onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="alphacapital2489500"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.account_name}
+              onChange={(e) => setFormData({ ...formData, account_name: e.target.value })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+              placeholder="alphacapital2489500"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Server Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.platform}
-                onChange={(e) => setFormData({ ...formData, platform: e.target.value as any })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Server Type <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.platform}
+              onChange={(e) => setFormData({ ...formData, platform: e.target.value as any })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
+            >
+              <option value="MT4">MetaTrader 4</option>
+              <option value="MT5">MetaTrader 5</option>
+              <option value="cTrader">cTrader</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Select Broker <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowBrokerDropdown(!showBrokerDropdown)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:bg-gray-50"
               >
-                <option value="MT4">MetaTrader 4</option>
-                <option value="MT5">MetaTrader 5</option>
-                <option value="cTrader">cTrader</option>
-              </select>
-            </div>
+                <span className={formData.broker_name ? 'text-gray-900' : 'text-gray-500'}>
+                  {formData.broker_name || 'Select a broker...'}
+                </span>
+                <Search className="w-4 h-4 text-gray-400" />
+              </button>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Broker <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowBrokerDropdown(!showBrokerDropdown)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:bg-gray-50"
-                >
-                  <span className={formData.broker_name ? 'text-gray-900' : 'text-gray-500'}>
-                    {formData.broker_name || 'Select a broker...'}
-                  </span>
-                  <Search className="w-4 h-4 text-gray-400" />
-                </button>
-
-                {showBrokerDropdown && (
-                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
-                    <input
-                      type="text"
-                      placeholder="Search brokers..."
-                      value={brokerSearchQuery}
-                      onChange={(e) => setBrokerSearchQuery(e.target.value)}
-                      className="w-full px-4 py-2 border-b border-gray-300 focus:outline-none"
-                    />
-                    <div className="max-h-64 overflow-y-auto">
-                      {filteredBrokers.length > 0 ? (
-                        filteredBrokers.map((broker) => (
-                          <button
-                            key={broker.id}
-                            type="button"
-                            onClick={() => handleBrokerSelect(broker)}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center justify-between"
-                          >
-                            <div>
+              {showBrokerDropdown && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                  <input
+                    type="text"
+                    placeholder="Search brokers..."
+                    value={brokerSearchQuery}
+                    onChange={(e) => setBrokerSearchQuery(e.target.value)}
+                    className="w-full px-4 py-2 border-b border-gray-300 focus:outline-none"
+                  />
+                  <div className="max-h-64 overflow-y-auto">
+                    {filteredBrokers.length > 0 ? (
+                      filteredBrokers.map((broker) => (
+                        <button
+                          key={broker.id}
+                          type="button"
+                          onClick={() => handleBrokerSelect(broker)}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center justify-between"
+                        >
                               <p className="font-medium text-gray-900">{broker.name}</p>
                               <p className="text-xs text-gray-600">
                                 {broker.supported_platforms.join(', ')}
                               </p>
                             </div>
-                            {formData.broker_id === broker.id && <Check className="w-4 h-4 text-blue-600" />}
+                            {formData.broker_id === broker.id && <Check className="w-4 h-4 text-brand" />}
                           </button>
                         ))
                       ) : (
@@ -319,7 +319,7 @@ export function AccountsPage() {
 
             {loadingServers && (
               <div className="flex items-center justify-center py-4">
-                <Loader className="w-5 h-5 animate-spin text-blue-600 mr-2" />
+                <Loader className="w-5 h-5 animate-spin text-brand mr-2" />
                 <span className="text-sm text-gray-600">Loading servers...</span>
               </div>
             )}
@@ -332,7 +332,7 @@ export function AccountsPage() {
                 <select
                   value={formData.server}
                   onChange={(e) => handleServerSelect(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                 >
                   <option value="">Select a server</option>
                   {brokerServers.map((server) => (
@@ -345,9 +345,9 @@ export function AccountsPage() {
             )}
 
             {fetchingAccounts && (
-              <div className="flex items-center justify-center py-4 bg-blue-50 rounded-lg">
-                <Loader className="w-5 h-5 animate-spin text-blue-600 mr-2" />
-                <span className="text-sm text-blue-600">Fetching accounts from server...</span>
+              <div className="flex items-center justify-center py-4 bg-brand-light rounded-lg">
+                <Loader className="w-5 h-5 animate-spin text-brand mr-2" />
+                <span className="text-sm text-brand">Fetching accounts from server...</span>
               </div>
             )}
 
@@ -360,7 +360,7 @@ export function AccountsPage() {
                   type="text"
                   value={formData.account_id}
                   onChange={(e) => setFormData({ ...formData, account_id: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                   placeholder="2489500"
                 />
                 {selectedBrokerAccounts.length > 0 && (
@@ -373,7 +373,7 @@ export function AccountsPage() {
                         onClick={() => handleSelectBrokerAccount(account)}
                         className={`w-full text-left p-3 rounded-lg border transition-colors ${
                           formData.account_id === account.account_number
-                            ? 'border-blue-500 bg-blue-50'
+                            ? 'border-brand bg-brand-light'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
@@ -397,7 +397,7 @@ export function AccountsPage() {
                   type="password"
                   value={formData.account_password}
                   onChange={(e) => setFormData({ ...formData, account_password: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
                   placeholder="••••••••"
                 />
               </div>
@@ -409,7 +409,7 @@ export function AccountsPage() {
                   type="checkbox"
                   checked={formData.is_master}
                   onChange={(e) => setFormData({ ...formData, is_master: e.target.checked })}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
                 />
                 <span className="text-sm font-medium text-gray-700">Master Account</span>
               </label>
@@ -445,9 +445,9 @@ export function AccountsPage() {
               </button>
             </div>
           </form>
-        </div>
-      )}
+        </Modal>
 
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {accounts.length === 0 ? (
           <div className="col-span-full bg-white rounded-xl p-12 text-center">
@@ -494,7 +494,7 @@ export function AccountsPage() {
                   {account.status}
                 </span>
                 {account.is_master && (
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-600">
+                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-brand-light text-brand">
                     Master
                   </span>
                 )}

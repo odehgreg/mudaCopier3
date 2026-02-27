@@ -69,7 +69,7 @@ export function AnalyticsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
       </div>
     );
   }
@@ -97,12 +97,12 @@ export function AnalyticsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
+                <div className="bg-brand-light rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm font-medium text-blue-900">Total Trades</span>
+                    <Target className="w-5 h-5 text-brand" />
+                    <span className="text-sm font-medium text-brand-dark">Total Trades</span>
                   </div>
-                  <p className="text-2xl font-bold text-blue-900">{stats.totalTrades}</p>
+                  <p className="text-2xl font-bold text-brand-dark">{stats.totalTrades}</p>
                 </div>
 
                 <div className="bg-green-50 rounded-lg p-4">

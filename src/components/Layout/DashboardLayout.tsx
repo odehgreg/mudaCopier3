@@ -51,7 +51,7 @@ export function DashboardLayout({ children, currentPage, onNavigate }: Dashboard
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <span className="font-bold text-lg text-gray-900">TradersConnect</span>
@@ -78,7 +78,7 @@ export function DashboardLayout({ children, currentPage, onNavigate }: Dashboard
                     className={`
                       w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors
                       ${isActive
-                        ? 'bg-blue-50 text-blue-600'
+                        ? 'bg-brand-light text-brand'
                         : 'text-gray-700 hover:bg-gray-50'
                       }
                     `}
@@ -114,11 +114,11 @@ export function DashboardLayout({ children, currentPage, onNavigate }: Dashboard
             <div className="flex items-center justify-between px-4 lg:px-8 py-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden text-gray-600 hover:text-gray-900"
+                className="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-xl font-bold text-gray-900 capitalize">
+              <h1 className="text-xl font-bold text-gray-900 capitalize tracking-wide">
                 {currentPage}
               </h1>
               <div className="w-6 lg:hidden" />

@@ -69,7 +69,7 @@ export function DashboardPage() {
       title: 'Total Accounts',
       value: stats.totalAccounts,
       icon: Activity,
-      color: 'blue',
+      color: 'brand',
     },
     {
       title: 'Active Copiers',
@@ -93,17 +93,9 @@ export function DashboardPage() {
       title: 'Win Rate',
       value: `${stats.winRate.toFixed(1)}%`,
       icon: TrendingUp,
-      color: 'blue',
+      color: 'brand',
     },
   ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -129,27 +121,27 @@ export function DashboardPage() {
           <h2 className="text-lg font-bold text-gray-900">Recent Trades</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+          <table className="w-full table-auto">
+            <thead className="bg-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   Symbol
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Lot Size
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  Lots
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
                   Profit
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {recentTrades.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
@@ -171,7 +163,7 @@ export function DashboardPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`
                         px-2 py-1 text-xs font-medium rounded-full
-                        ${trade.status === 'open' ? 'bg-blue-50 text-blue-600' : ''}
+                        ${trade.status === 'open' ? 'bg-brand-light text-brand' : ''}
                         ${trade.status === 'closed' ? 'bg-gray-50 text-gray-600' : ''}
                         ${trade.status === 'pending' ? 'bg-yellow-50 text-yellow-600' : ''}
                       `}>

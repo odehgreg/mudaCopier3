@@ -122,7 +122,7 @@ export function CopierConfigCard({
       <div className="pt-4 border-t border-gray-200 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-blue-600" />
+            <Clock className="w-4 h-4 text-brand" />
             <span className="text-sm text-gray-700">
               Last Sync:{' '}
               <span className="font-medium">
@@ -136,7 +136,7 @@ export function CopierConfigCard({
           <button
             onClick={handleManualSync}
             disabled={syncing || !config.enabled}
-            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1 text-sm bg-brand text-white rounded hover:bg-brand-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {syncing ? 'Syncing...' : 'Sync Now'}
           </button>
@@ -150,8 +150,8 @@ export function CopierConfigCard({
         )}
 
         {isMonitoring && (
-          <p className="text-xs text-blue-600 flex items-center gap-1">
-            <span className="inline-block w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+          <p className="text-xs text-brand flex items-center gap-1">
+            <span className="inline-block w-2 h-2 bg-brand rounded-full animate-pulse" />
             Monitoring active
           </p>
         )}

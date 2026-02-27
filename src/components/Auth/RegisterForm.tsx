@@ -35,7 +35,7 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="John Doe"
         />
       </div>
@@ -50,7 +50,7 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="you@example.com"
         />
       </div>
@@ -66,7 +66,7 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
           placeholder="••••••••"
         />
       </div>
@@ -80,7 +80,7 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full bg-brand text-white py-2.5 rounded-lg font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {loading ? 'Creating account...' : 'Create Account'}
       </button>
@@ -90,7 +90,7 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
         <button
           type="button"
           onClick={onToggle}
-          className="text-blue-600 hover:text-blue-700 font-medium"
+          className="text-brand hover:text-brand-dark font-medium"
         >
           Sign in
         </button>
