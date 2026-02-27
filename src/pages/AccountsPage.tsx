@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Plus, Trash2, Check, X, Loader } from 'lucide-react';
+import { Plus, Trash2, Check, X, Loader, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { brokerService, Broker, BrokerAccount, BrokerServer } from '../lib/brokerService';
 
 interface TradingAccount {
   id: string;
@@ -15,27 +16,6 @@ interface TradingAccount {
   is_master: boolean;
 }
 
-interface Broker {
-  id: string;
-  name: string;
-  supported_platforms: string[];
-}
-
-interface BrokerAccount {
-  account_number: string;
-  account_name: string;
-  balance: number;
-  equity: number;
-  currency: string;
-  platform: string;
-  server?: string;
-}
-
-interface BrokerServer {
-  name: string;
-  description: string;
-}
-
 export function AccountsPage() {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<TradingAccount[]>([]);
@@ -46,10 +26,13 @@ export function AccountsPage() {
   const [loadingServers, setLoadingServers] = useState(false);
   const [fetchingAccounts, setFetchingAccounts] = useState(false);
   const [selectedBrokerAccounts, setSelectedBrokerAccounts] = useState<BrokerAccount[]>([]);
+  const [brokerSearchQuery, setBrokerSearchQuery] = useState('');
+  const [showBrokerDropdown, setShowBrokerDropdown] = useState(false);
   const [formData, setFormData] = useState({
     account_name: '',
     platform: 'MT5' as 'MT4' | 'MT5' | 'cTrader',
     broker_id: '',
+    broker_name: '',
     server: '',
     account_id: '',
     account_password: '',
@@ -64,20 +47,19 @@ export function AccountsPage() {
     if (!user) return;
 
     try {
-      const [accountsData, brokersData] = await Promise.all([
+      const [accountsData, allBrokers] = await Promise.all([
         supabase
           .from('trading_accounts')
           .select('*')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
-        supabase.from('brokers').select('*'),
+        brokerService.getAllBrokers(),
       ]);
 
       if (accountsData.error) throw accountsData.error;
-      if (brokersData.error) throw brokersData.error;
 
       setAccounts(accountsData.data || []);
-      setBrokers(brokersData.data || []);
+      setBrokers(allBrokers);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -85,16 +67,25 @@ export function AccountsPage() {
     }
   };
 
-  const handleBrokerSelect = async (brokerId: string) => {
+  // Filter brokers based on search
+  const filteredBrokers = brokers.filter((broker) =>
+    broker.name.toLowerCase().includes(brokerSearchQuery.toLowerCase())
+  );
+
+  const handleBrokerSelect = async (broker: Broker) => {
     setFormData((prev) => ({
       ...prev,
-      broker_id: brokerId,
+      broker_id: broker.id,
+      broker_name: broker.name,
       server: '',
       account_id: '',
       account_password: '',
     }));
 
-    if (!brokerId) {
+    setShowBrokerDropdown(false);
+    setBrokerSearchQuery('');
+
+    if (!broker.id) {
       setBrokerServers([]);
       setSelectedBrokerAccounts([]);
       return;
@@ -102,15 +93,8 @@ export function AccountsPage() {
 
     setLoadingServers(true);
     try {
-      const selectedBroker = brokers.find((b) => b.id === brokerId);
-      if (!selectedBroker) return;
-
-      const mockServers: BrokerServer[] = [
-        { name: `${selectedBroker.name}-Live`, description: 'Live Trading Server' },
-        { name: `${selectedBroker.name}-Demo`, description: 'Demo Trading Server' },
-      ];
-
-      setBrokerServers(mockServers);
+      const servers = await brokerService.getBrokerServers(broker.id, broker);
+      setBrokerServers(servers);
       setSelectedBrokerAccounts([]);
     } catch (error) {
       console.error('Error loading broker servers:', error);
@@ -132,26 +116,18 @@ export function AccountsPage() {
       const selectedBroker = brokers.find((b) => b.id === formData.broker_id);
       if (!selectedBroker || !server) return;
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-broker-accounts`,
+      await brokerService.fetchBrokerAccounts(
+        formData.broker_id,
+        selectedBroker,
+        server,
+        formData.platform,
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
-          },
-          body: JSON.stringify({
-            broker_id: formData.broker_id,
-            server: server,
-            platform: formData.platform,
-          }),
+          accountId: formData.account_id,
+          password: formData.account_password,
         }
       );
-
-      const data = await response.json();
-      if (data.accounts) {
-        setSelectedBrokerAccounts(data.accounts);
-      }
+      // Note: Mock implementation - actual accounts will be fetched from broker API
+      setSelectedBrokerAccounts([]);
     } catch (error) {
       console.error('Error fetching accounts from server:', error);
     } finally {
@@ -175,14 +151,12 @@ export function AccountsPage() {
     }
 
     try {
-      const broker = brokers.find((b) => b.id === formData.broker_id);
-
       const { error } = await supabase.from('trading_accounts').insert({
         user_id: user.id,
         account_name: formData.account_name || formData.account_id,
         platform: formData.platform,
         account_number: formData.account_id,
-        broker: broker?.name || 'Unknown',
+        broker: formData.broker_name,
         broker_id: formData.broker_id,
         balance: 0,
         equity: 0,
@@ -197,6 +171,7 @@ export function AccountsPage() {
         account_name: '',
         platform: 'MT5',
         broker_id: '',
+        broker_name: '',
         server: '',
         account_id: '',
         account_password: '',
@@ -292,18 +267,54 @@ export function AccountsPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Select Broker <span className="text-red-500">*</span>
               </label>
-              <select
-                value={formData.broker_id}
-                onChange={(e) => handleBrokerSelect(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select a broker</option>
-                {brokers.map((broker) => (
-                  <option key={broker.id} value={broker.id}>
-                    {broker.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowBrokerDropdown(!showBrokerDropdown)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:bg-gray-50"
+                >
+                  <span className={formData.broker_name ? 'text-gray-900' : 'text-gray-500'}>
+                    {formData.broker_name || 'Select a broker...'}
+                  </span>
+                  <Search className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {showBrokerDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                    <input
+                      type="text"
+                      placeholder="Search brokers..."
+                      value={brokerSearchQuery}
+                      onChange={(e) => setBrokerSearchQuery(e.target.value)}
+                      className="w-full px-4 py-2 border-b border-gray-300 focus:outline-none"
+                    />
+                    <div className="max-h-64 overflow-y-auto">
+                      {filteredBrokers.length > 0 ? (
+                        filteredBrokers.map((broker) => (
+                          <button
+                            key={broker.id}
+                            type="button"
+                            onClick={() => handleBrokerSelect(broker)}
+                            className="w-full text-left px-4 py-3 hover:bg-gray-100 flex items-center justify-between"
+                          >
+                            <div>
+                              <p className="font-medium text-gray-900">{broker.name}</p>
+                              <p className="text-xs text-gray-600">
+                                {broker.supported_platforms.join(', ')}
+                              </p>
+                            </div>
+                            {formData.broker_id === broker.id && <Check className="w-4 h-4 text-blue-600" />}
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-3 text-center text-gray-500 text-sm">
+                          No brokers found
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {loadingServers && (
