@@ -1,7 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. " +
+      "Please create a .env file based on .env.example and restart the server.",
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -36,12 +43,12 @@ export interface Database {
           id: string;
           user_id: string;
           account_name: string;
-          platform: 'MT4' | 'MT5' | 'cTrader';
+          platform: "MT4" | "MT5" | "cTrader";
           account_number: string;
           broker: string;
           balance: number;
           equity: number;
-          status: 'connected' | 'disconnected' | 'error';
+          status: "connected" | "disconnected" | "error";
           is_master: boolean;
           created_at: string;
           updated_at: string;
@@ -54,12 +61,12 @@ export interface Database {
           account_id: string;
           ticket_number: string;
           symbol: string;
-          trade_type: 'BUY' | 'SELL';
+          trade_type: "BUY" | "SELL";
           lot_size: number;
           open_price: number;
           close_price: number | null;
           profit: number;
-          status: 'open' | 'closed' | 'pending';
+          status: "open" | "closed" | "pending";
           opened_at: string;
           closed_at: string | null;
           created_at: string;
