@@ -13,13 +13,13 @@ export interface BrokerAccount {
   freeMargin: number;
   usedMargin: number;
   marginLevel: number;
-  status: 'connected' | 'disconnected' | 'error';
+  status: "connected" | "disconnected" | "error";
 }
 
 export interface BrokerTrade {
   ticket: string;
   symbol: string;
-  tradeType: 'BUY' | 'SELL';
+  tradeType: "BUY" | "SELL";
   volume: number;
   openPrice: number;
   openTime: Date;
@@ -29,7 +29,7 @@ export interface BrokerTrade {
   commission: number;
   swap: number;
   comment?: string;
-  status: 'open' | 'closed' | 'pending';
+  status: "open" | "closed" | "pending";
 }
 
 export interface BrokerConnection {
@@ -84,16 +84,20 @@ export abstract class BrokerAdapter {
   /**
    * Close a trade
    */
-  abstract closeTrade(ticket: string, volume: number, price?: number): Promise<boolean>;
+  abstract closeTrade(
+    ticket: string,
+    volume: number,
+    price?: number,
+  ): Promise<boolean>;
 
   /**
    * Open a trade
    */
   abstract openTrade(
     symbol: string,
-    tradeType: 'BUY' | 'SELL',
+    tradeType: "BUY" | "SELL",
     volume: number,
-    price?: number
+    price?: number,
   ): Promise<BrokerTrade>;
 
   /**
@@ -119,7 +123,10 @@ export abstract class BrokerAdapter {
 }
 
 export interface IBrokerSyncService {
-  syncAccount(brokerId: string, connection: BrokerConnection): Promise<BrokerSyncResult>;
+  syncAccount(
+    brokerId: string,
+    connection: BrokerConnection,
+  ): Promise<BrokerSyncResult>;
   syncAllAccounts(): Promise<BrokerSyncResult[]>;
   startAutoSync(intervalMs: number): void;
   stopAutoSync(): void;

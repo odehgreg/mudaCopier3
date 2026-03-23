@@ -3,9 +3,9 @@
  * Syncs trades and account info from brokers to Supabase
  */
 
-import { supabase } from './supabase';
-import { BrokerFactory, BrokerType } from './brokerApi/factory';
-import { BrokerConnection, BrokerSyncResult } from './brokerApi/types';
+import { supabase } from "./supabase";
+import { BrokerFactory, BrokerType } from "./brokerApi/factory";
+import { BrokerConnection, BrokerSyncResult } from "./brokerApi/types";
 
 export interface BrokerConnectionConfig {
   id: string;
@@ -32,7 +32,7 @@ export class BrokerSyncService {
 
     // Prevent concurrent syncs
     if (this.isSyncing.get(syncKey)) {
-      throw new Error('Sync already in progress for this account');
+      throw new Error("Sync already in progress for this account");
     }
 
     this.isSyncing.set(syncKey, true);
@@ -42,7 +42,7 @@ export class BrokerSyncService {
       const adapter = BrokerFactory.createAdapter(
         config.broker_name,
         config.account_id,
-        config.platform
+        config.platform,
       );
 
       // Connect to broker
@@ -71,9 +71,9 @@ export class BrokerSyncService {
 
       // Update sync timestamp
       await supabase
-        .from('trading_accounts')
+        .from("trading_accounts")
         .update({ last_sync: new Date().toISOString() })
-        .eq('id', config.id);
+        .eq("id", config.id);
 
       return {
         accountId: config.account_id,
@@ -82,7 +82,8 @@ export class BrokerSyncService {
         trades,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error(`Error syncing account ${config.account_id}:`, error);
 
       return {
@@ -103,10 +104,10 @@ export class BrokerSyncService {
     try {
       // Fetch all trading accounts for user
       const { data: accounts, error } = await supabase
-        .from('trading_accounts')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'connected');
+        .from("trading_accounts")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("status", "connected");
 
       if (error) throw error;
 
@@ -121,7 +122,7 @@ export class BrokerSyncService {
           broker_name: account.broker,
           platform: account.platform,
           account_id: account.account_number,
-          password: account.api_key || '',
+          password: account.api_key || "",
           sync_enabled: true,
         });
 
@@ -130,7 +131,7 @@ export class BrokerSyncService {
 
       return results;
     } catch (error) {
-      console.error('Error syncing all accounts:', error);
+      console.error("Error syncing all accounts:", error);
       return [];
     }
   }
@@ -140,7 +141,7 @@ export class BrokerSyncService {
    */
   async startAutoSync(
     config: BrokerConnectionConfig,
-    intervalMs: number = 60000
+    intervalMs: number = 60000,
   ): Promise<void> {
     const syncKey = `${config.user_id}:${config.id}`;
 
@@ -192,18 +193,18 @@ export class BrokerSyncService {
   private async saveAccountData(
     userId: string,
     accountId: string,
-    accountData: any
+    accountData: any,
   ): Promise<void> {
     const { error } = await supabase
-      .from('trading_accounts')
+      .from("trading_accounts")
       .update({
         balance: accountData.balance,
         equity: accountData.equity,
         status: accountData.status,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', accountId)
-      .eq('user_id', userId);
+      .eq("id", accountId)
+      .eq("user_id", userId);
 
     if (error) {
       throw new Error(`Failed to save account data: ${error.message}`);
@@ -213,18 +214,18 @@ export class BrokerSyncService {
   private async saveTrades(
     userId: string,
     accountId: string,
-    trades: any[]
+    trades: any[],
   ): Promise<void> {
     // First, get all existing trades for this account
     const { data: existingTrades, error: fetchError } = await supabase
-      .from('trades')
-      .select('ticket_number')
-      .eq('account_id', accountId);
+      .from("trades")
+      .select("ticket_number")
+      .eq("account_id", accountId);
 
     if (fetchError) throw fetchError;
 
     const existingTickets = new Set(
-      (existingTrades || []).map((t) => t.ticket_number)
+      (existingTrades || []).map((t) => t.ticket_number),
     );
 
     // Prepare new trades to insert
@@ -248,7 +249,7 @@ export class BrokerSyncService {
     // Insert new trades
     if (tradesToInsert.length > 0) {
       const { error: insertError } = await supabase
-        .from('trades')
+        .from("trades")
         .insert(tradesToInsert);
 
       if (insertError) {
@@ -257,18 +258,18 @@ export class BrokerSyncService {
     }
 
     // Update closed trades
-    const closedTrades = trades.filter((t) => t.status === 'closed');
+    const closedTrades = trades.filter((t) => t.status === "closed");
     for (const trade of closedTrades) {
       const { error: updateError } = await supabase
-        .from('trades')
+        .from("trades")
         .update({
-          status: 'closed',
+          status: "closed",
           close_price: trade.closePrice,
           profit: trade.profit,
           closed_at: trade.closeTime?.toISOString(),
         })
-        .eq('ticket_number', trade.ticket)
-        .eq('account_id', accountId);
+        .eq("ticket_number", trade.ticket)
+        .eq("account_id", accountId);
 
       if (updateError) {
         console.warn(`Failed to update trade ${trade.ticket}:`, updateError);

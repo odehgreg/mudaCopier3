@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, Filter } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useState } from "react";
+import { TrendingUp, TrendingDown, Filter } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Trade {
   id: string;
   ticket_number: string;
   symbol: string;
-  trade_type: 'BUY' | 'SELL';
+  trade_type: "BUY" | "SELL";
   lot_size: number;
   open_price: number;
   close_price: number | null;
   profit: number;
-  status: 'open' | 'closed' | 'pending';
+  status: "open" | "closed" | "pending";
   opened_at: string;
   closed_at: string | null;
   account?: any;
@@ -23,8 +23,8 @@ export function TradesPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [accounts, setAccounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [accountFilter, setAccountFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [accountFilter, setAccountFilter] = useState<string>("all");
 
   useEffect(() => {
     loadTrades();
@@ -36,33 +36,34 @@ export function TradesPage() {
     try {
       const [tradesRes, accountsRes] = await Promise.all([
         supabase
-          .from('trades')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false }),
-        supabase.from('trading_accounts').select('*').eq('user_id', user.id),
+          .from("trades")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("trading_accounts").select("*").eq("user_id", user.id),
       ]);
 
       const accountsList = accountsRes.data || [];
       const tradesList = tradesRes.data || [];
 
-      const tradesWithAccounts = tradesList.map(trade => ({
+      const tradesWithAccounts = tradesList.map((trade) => ({
         ...trade,
-        account: accountsList.find(a => a.id === trade.account_id),
+        account: accountsList.find((a) => a.id === trade.account_id),
       }));
 
       setAccounts(accountsList);
       setTrades(tradesWithAccounts);
     } catch (error) {
-      console.error('Error loading trades:', error);
+      console.error("Error loading trades:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredTrades = trades.filter(trade => {
-    if (statusFilter !== 'all' && trade.status !== statusFilter) return false;
-    if (accountFilter !== 'all' && trade.account_id !== accountFilter) return false;
+  const filteredTrades = trades.filter((trade) => {
+    if (statusFilter !== "all" && trade.status !== statusFilter) return false;
+    if (accountFilter !== "all" && trade.account_id !== accountFilter)
+      return false;
     return true;
   });
 
@@ -78,7 +79,9 @@ export function TradesPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Trade History</h2>
-        <p className="text-gray-600 mt-1">Monitor all your trades in real-time</p>
+        <p className="text-gray-600 mt-1">
+          Monitor all your trades in real-time
+        </p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -102,7 +105,7 @@ export function TradesPage() {
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
             >
               <option value="all">All Accounts</option>
-              {accounts.map(account => (
+              {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.account_name}
                 </option>
@@ -149,7 +152,10 @@ export function TradesPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredTrades.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                  <td
+                    colSpan={9}
+                    className="px-6 py-8 text-center text-gray-500"
+                  >
                     No trades found
                   </td>
                 </tr>
@@ -160,16 +166,18 @@ export function TradesPage() {
                       {trade.ticket_number}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {trade.account?.account_name || 'N/A'}
+                      {trade.account?.account_name || "N/A"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {trade.symbol}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`
+                      <span
+                        className={`
                         px-2 py-1 text-xs font-medium rounded-full
-                        ${trade.trade_type === 'BUY' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}
-                      `}>
+                        ${trade.trade_type === "BUY" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}
+                      `}
+                      >
                         {trade.trade_type}
                       </span>
                     </td>
@@ -180,20 +188,24 @@ export function TradesPage() {
                       {trade.open_price.toFixed(5)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {trade.close_price ? trade.close_price.toFixed(5) : '-'}
+                      {trade.close_price ? trade.close_price.toFixed(5) : "-"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`
+                      <span
+                        className={`
                         px-2 py-1 text-xs font-medium rounded-full
-                        ${trade.status === 'open' ? 'bg-brand-light text-brand' : ''}
-                        ${trade.status === 'closed' ? 'bg-gray-50 text-gray-600' : ''}
-                        ${trade.status === 'pending' ? 'bg-yellow-50 text-yellow-600' : ''}
-                      `}>
+                        ${trade.status === "open" ? "bg-brand-light text-brand" : ""}
+                        ${trade.status === "closed" ? "bg-gray-50 text-gray-600" : ""}
+                        ${trade.status === "pending" ? "bg-yellow-50 text-yellow-600" : ""}
+                      `}
+                      >
                         {trade.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <span className={`font-medium ${trade.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span
+                        className={`font-medium ${trade.profit >= 0 ? "text-green-600" : "text-red-600"}`}
+                      >
                         {trade.profit >= 0 ? (
                           <TrendingUp className="w-4 h-4 inline mr-1" />
                         ) : (

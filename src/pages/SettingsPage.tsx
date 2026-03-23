@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
-import { User, Save } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useEffect, useState } from "react";
+import { User, Save } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 export function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState({
-    full_name: '',
-    email: '',
+    full_name: "",
+    email: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -22,26 +25,26 @@ export function SettingsPage() {
 
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
         setProfile({
-          full_name: data.full_name || '',
-          email: data.email || user.email || '',
+          full_name: data.full_name || "",
+          email: data.email || user.email || "",
         });
       } else {
         setProfile({
-          full_name: '',
-          email: user.email || '',
+          full_name: "",
+          email: user.email || "",
         });
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error("Error loading profile:", error);
     } finally {
       setLoading(false);
     }
@@ -56,19 +59,19 @@ export function SettingsPage() {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           full_name: profile.full_name,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 
-      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+      setMessage({ type: "success", text: "Profile updated successfully!" });
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setMessage({ type: 'error', text: 'Failed to update profile' });
+      console.error("Error updating profile:", error);
+      setMessage({ type: "error", text: "Failed to update profile" });
     } finally {
       setSaving(false);
     }
@@ -86,7 +89,9 @@ export function SettingsPage() {
     <div className="max-w-2xl space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-        <p className="text-gray-600 mt-1">Manage your account settings and preferences</p>
+        <p className="text-gray-600 mt-1">
+          Manage your account settings and preferences
+        </p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -95,8 +100,12 @@ export function SettingsPage() {
             <User className="w-6 h-6 text-brand" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Profile Information</h3>
-            <p className="text-sm text-gray-600">Update your personal details</p>
+            <h3 className="text-lg font-bold text-gray-900">
+              Profile Information
+            </h3>
+            <p className="text-sm text-gray-600">
+              Update your personal details
+            </p>
           </div>
         </div>
 
@@ -108,7 +117,9 @@ export function SettingsPage() {
             <input
               type="text"
               value={profile.full_name}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              onChange={(e) =>
+                setProfile({ ...profile, full_name: e.target.value })
+              }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent"
               placeholder="John Doe"
             />
@@ -124,14 +135,18 @@ export function SettingsPage() {
               disabled
               className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
             />
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Email cannot be changed
+            </p>
           </div>
 
           {message && (
-            <div className={`
+            <div
+              className={`
               px-4 py-3 rounded-lg text-sm
-              ${message.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}
-            `}>
+              ${message.type === "success" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600"}
+            `}
+            >
               {message.text}
             </div>
           )}
@@ -142,15 +157,18 @@ export function SettingsPage() {
             className="flex items-center gap-2 bg-brand text-white px-4 py-2 rounded-lg hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-5 h-5" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? "Saving..." : "Save Changes"}
           </button>
         </form>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Risk Management</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">
+          Risk Management
+        </h3>
         <p className="text-sm text-gray-600 mb-4">
-          Configure your default risk management settings. These can be overridden for individual copier configurations.
+          Configure your default risk management settings. These can be
+          overridden for individual copier configurations.
         </p>
 
         <div className="space-y-4">

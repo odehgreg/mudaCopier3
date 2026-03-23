@@ -1,23 +1,23 @@
-import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useState } from "react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function RegisterForm({ onToggle }: { onToggle: () => void }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
       await signUp(email, password, fullName);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create account');
+      setError(err instanceof Error ? err.message : "Failed to create account");
     } finally {
       setLoading(false);
     }
@@ -26,7 +26,10 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="fullName"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Full Name
         </label>
         <input
@@ -41,7 +44,10 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="email"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Email
         </label>
         <input
@@ -56,7 +62,10 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Password
         </label>
         <input
@@ -82,11 +91,11 @@ export function RegisterForm({ onToggle }: { onToggle: () => void }) {
         disabled={loading}
         className="w-full bg-brand text-white py-2.5 rounded-lg font-medium hover:bg-brand-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'Creating account...' : 'Create Account'}
+        {loading ? "Creating account..." : "Create Account"}
       </button>
 
       <p className="text-center text-sm text-gray-600">
-        Already have an account?{' '}
+        Already have an account?{" "}
         <button
           type="button"
           onClick={onToggle}

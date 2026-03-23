@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
-import { brokerSyncService } from '../lib/brokerSyncService';
-import type { BrokerSyncResult } from '../lib/brokerApi/types';
+import { useEffect, useState, useCallback } from "react";
+import { brokerSyncService } from "../lib/brokerSyncService";
+import type { BrokerSyncResult } from "../lib/brokerApi/types";
 
 interface UseBrokerSyncOptions {
   accountId?: string;
@@ -41,14 +41,14 @@ export function useBrokerSync(options: UseBrokerSyncOptions = {}) {
 
         return result;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Sync failed';
+        const errorMessage = err instanceof Error ? err.message : "Sync failed";
         setError(errorMessage);
-        console.error('Broker sync error:', err);
+        console.error("Broker sync error:", err);
       } finally {
         setIsSyncing(false);
       }
     },
-    [enabled]
+    [enabled],
   );
 
   // Auto-sync setup
@@ -57,7 +57,7 @@ export function useBrokerSync(options: UseBrokerSyncOptions = {}) {
 
     // This would need the full config object to work properly
     // For now, we'll just log a warning
-    console.warn('Auto-sync requires full account configuration');
+    console.warn("Auto-sync requires full account configuration");
   }, [autoSync, accountId, enabled, syncInterval]);
 
   return {
@@ -97,14 +97,14 @@ export function useBrokerSyncAll(options: { enabled?: boolean } = {}) {
 
         return syncResults;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Sync failed';
+        const errorMessage = err instanceof Error ? err.message : "Sync failed";
         setError(errorMessage);
-        console.error('Multi-sync error:', err);
+        console.error("Multi-sync error:", err);
       } finally {
         setIsSyncing(false);
       }
     },
-    [enabled]
+    [enabled],
   );
 
   return {

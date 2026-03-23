@@ -16,11 +16,13 @@ BrokerAdapter (abstract)
 ## Supported Features
 
 ### Broker Platforms
+
 - ✅ **MT4/MT5** - Via REST API bridge
 - ✅ **cTrader** - Via OpenAPI
 - ✅ **Mock** - For testing without real brokers
 
 ### Operations
+
 - ✅ Account Connection/Disconnection
 - ✅ Get Account Details (balance, equity, margin)
 - ✅ Fetch Open Trades
@@ -34,20 +36,20 @@ BrokerAdapter (abstract)
 ### Creating a Broker Connection
 
 ```typescript
-import { BrokerFactory } from '@/lib/brokerApi';
+import { BrokerFactory } from "@/lib/brokerApi";
 
 // Create an adapter for a specific broker
 const adapter = BrokerFactory.createAdapter(
-  'FTMO',           // Broker name
-  '123456789',      // Account ID
-  'MT5'             // Platform
+  "FTMO", // Broker name
+  "123456789", // Account ID
+  "MT5", // Platform
 );
 
 // Connect to broker
 await adapter.connect({
-  accountId: '123456789',
-  password: 'your-password',
-  server: 'FTMO-Demo'
+  accountId: "123456789",
+  password: "your-password",
+  server: "FTMO-Demo",
 });
 
 // Get account details
@@ -58,10 +60,10 @@ console.log(account.balance, account.equity);
 const trades = await adapter.getTrades();
 
 // Close a trade
-await adapter.closeTrade('ticket123', 1.0);
+await adapter.closeTrade("ticket123", 1.0);
 
 // Open a trade
-const trade = await adapter.openTrade('EURUSD', 'BUY', 1.0);
+const trade = await adapter.openTrade("EURUSD", "BUY", 1.0);
 
 // Disconnect
 await adapter.disconnect();
@@ -70,28 +72,28 @@ await adapter.disconnect();
 ### Using the Sync Service
 
 ```typescript
-import { brokerSyncService } from '@/lib/brokerSyncService';
+import { brokerSyncService } from "@/lib/brokerSyncService";
 
 // Sync a single account
 const result = await brokerSyncService.syncAccount({
-  id: 'account-id',
-  user_id: 'user-id',
-  broker_id: 'broker-id',
-  broker_name: 'FTMO',
-  platform: 'MT5',
-  account_id: '123456789',
-  password: 'your-password',
+  id: "account-id",
+  user_id: "user-id",
+  broker_id: "broker-id",
+  broker_name: "FTMO",
+  platform: "MT5",
+  account_id: "123456789",
+  password: "your-password",
   sync_enabled: true,
 });
 
 // Sync all accounts for a user
-const results = await brokerSyncService.syncAllAccounts('user-id');
+const results = await brokerSyncService.syncAllAccounts("user-id");
 
 // Start continuous auto-syncing (every 60 seconds)
 await brokerSyncService.startAutoSync(config, 60000);
 
 // Stop auto-syncing
-brokerSyncService.stopAutoSync('user-id', 'account-id');
+brokerSyncService.stopAutoSync("user-id", "account-id");
 ```
 
 ### React Hooks
@@ -126,8 +128,8 @@ function MyComponent() {
 
 ```typescript
 BrokerFactory.registerBrokerEndpoint(
-  'My Broker',
-  'https://api.mybroker.com/v1'
+  "My Broker",
+  "https://api.mybroker.com/v1",
 );
 ```
 
@@ -138,11 +140,11 @@ export class MyBrokerAdapter extends BrokerAdapter {
   async connect(credentials: BrokerConnection): Promise<void> {
     // Custom connection logic
   }
-  
+
   async getAccount(): Promise<BrokerAccount> {
     // Custom account fetching
   }
-  
+
   // ... implement other methods
 }
 ```
@@ -153,13 +155,13 @@ Use the mock broker for development and testing:
 
 ```typescript
 const adapter = BrokerFactory.createAdapter(
-  'Test Broker',
-  '999999',
-  'mock'  // Use mock platform
+  "Test Broker",
+  "999999",
+  "mock", // Use mock platform
 );
 
 // Works exactly like real brokers but generates fake data
-await adapter.connect({ accountId: '999999', password: 'test123' });
+await adapter.connect({ accountId: "999999", password: "test123" });
 ```
 
 ## MT4/MT5 Bridge Server
@@ -187,7 +189,7 @@ try {
   await adapter.connect(credentials);
 } catch (error) {
   if (error instanceof Error) {
-    console.error('Connection failed:', error.message);
+    console.error("Connection failed:", error.message);
   }
 }
 ```
@@ -195,6 +197,7 @@ try {
 ## Database Integration
 
 The sync service automatically:
+
 - Updates `trading_accounts` table with balance/equity
 - Inserts new trades into `trades` table
 - Updates closed trades
@@ -203,6 +206,7 @@ The sync service automatically:
 ## Security Notes
 
 ⚠️ **Important**:
+
 - Never log passwords or API keys
 - Store credentials encrypted in database
 - Use HTTPS for all API connections

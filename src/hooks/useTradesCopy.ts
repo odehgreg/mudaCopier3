@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import { tradeCopyEngine } from '../lib/tradeCopyEngine';
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "../lib/supabase";
+import { tradeCopyEngine } from "../lib/tradeCopyEngine";
 
 interface UseTradeCopyOptions {
   masterAccountId?: string;
@@ -31,7 +31,7 @@ export function useTradeCopy(options: UseTradeCopyOptions = {}) {
     try {
       const results = await tradeCopyEngine.monitorAndCopyTrades(
         masterAccountId,
-        userId
+        userId,
       );
 
       setLastSyncTime(new Date());
@@ -40,15 +40,19 @@ export function useTradeCopy(options: UseTradeCopyOptions = {}) {
       const failureCount = results.filter((r) => !r.success).length;
 
       if (failureCount > 0) {
-        console.warn(`Trade copy completed: ${successCount} success, ${failureCount} failed`);
+        console.warn(
+          `Trade copy completed: ${successCount} success, ${failureCount} failed`,
+        );
       }
 
       return results;
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error during trade sync';
+        error instanceof Error
+          ? error.message
+          : "Unknown error during trade sync";
       setSyncError(errorMessage);
-      console.error('Trade sync error:', error);
+      console.error("Trade sync error:", error);
     } finally {
       setIsMonitoring(false);
     }
@@ -92,7 +96,7 @@ export function useTradeCopyConfig(configId: string) {
         const result = await tradeCopyEngine.getCopyConfiguration(configId);
         setConfig(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch config');
+        setError(err instanceof Error ? err.message : "Failed to fetch config");
       } finally {
         setLoading(false);
       }
@@ -109,17 +113,18 @@ export function useTradeCopyConfig(configId: string) {
       try {
         const updated = await tradeCopyEngine.updateCopyConfiguration(
           configId,
-          updates
+          updates,
         );
         setConfig(updated);
         return updated;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Update failed';
+        const errorMessage =
+          err instanceof Error ? err.message : "Update failed";
         setError(errorMessage);
         throw err;
       }
     },
-    [configId]
+    [configId],
   );
 
   return {
@@ -143,11 +148,11 @@ export function useCopyStatistics(slaveAccountId: string, days: number = 30) {
       try {
         const result = await tradeCopyEngine.getCopyStatistics(
           slaveAccountId,
-          days
+          days,
         );
         setStats(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch stats');
+        setError(err instanceof Error ? err.message : "Failed to fetch stats");
       } finally {
         setLoading(false);
       }

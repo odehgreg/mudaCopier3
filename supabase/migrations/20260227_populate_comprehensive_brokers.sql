@@ -24,7 +24,7 @@ INSERT INTO brokers (name, logo_url, supported_platforms, api_endpoint) VALUES
   -- Prop Trading Firms
   ('FTMO', 'https://brand.ftmo.com/download/ftmo-logo-150x150.png', ARRAY['MT4', 'MT5'], 'https://api.ftmo.com'),
   ('Funded Trading Plus', 'https://fundedtradingplus.com/ftp-logo.png', ARRAY['MT4', 'MT5'], 'https://api.fundedtradingplus.com'),
-  ('FundingPip', 'https://fundingpip.com/logo.png', ARRAY['MT4', 'MT5'], 'https://api.fundingpip.com'),
+  ('FundingPips', 'https://fundingpips.com/logo.png', ARRAY['MT4', 'MT5'], 'https://api.fundingpips.com'),
   ('Alpha Capital Group', 'https://alphacapitalgroup.com/logo.png', ARRAY['MT4', 'MT5'], 'https://api.alphacapitalgroupfx.com'),
   ('The Prop Trader', 'https://theproptrade.com/logo.png', ARRAY['MT4', 'MT5'], 'https://api.theproptrade.com'),
   ('E8 Markets', 'https://e8markets.com/logo.png', ARRAY['MT4', 'MT5'], 'https://api.e8markets.com'),
@@ -69,7 +69,11 @@ INSERT INTO brokers (name, logo_url, supported_platforms, api_endpoint) VALUES
   -- cTrader Brokers
   ('Ctrader Alliance', 'https://ctrader.com/logo.png', ARRAY['cTrader'], 'https://api.ctrader-alliance.com'),
   ('LiqTech', 'https://liqtech.com/logo.png', ARRAY['cTrader'], 'https://api.liqtech.com'),
-  ('Spotware', 'https://spotware.com/logo.png', ARRAY['cTrader'], 'https://api.spotware.com');
+  ('Spotware', 'https://spotware.com/logo.png', ARRAY['cTrader'], 'https://api.spotware.com'),
+  
+  -- DXTrade Brokers
+  ('DXTrade', 'https://dxtrade.com/logo.png', ARRAY['DXTrade'], 'https://api.dxtrade.com'),
+  ('TradersConnect DX', 'https://tradersconnect.com/logo.png', ARRAY['DXTrade'], 'https://api.tradersconnect.com');
 
 -- Enable RLS if not already enabled
 ALTER TABLE brokers ENABLE ROW LEVEL SECURITY;

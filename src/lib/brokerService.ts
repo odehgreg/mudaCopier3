@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 export interface Broker {
   id: string;
@@ -11,7 +11,7 @@ export interface Broker {
 export interface BrokerServer {
   name: string;
   description: string;
-  environment: 'live' | 'demo';
+  environment: "live" | "demo";
 }
 
 export interface BrokerAccount {
@@ -31,14 +31,14 @@ class BrokerService {
   async getAllBrokers(): Promise<Broker[]> {
     try {
       const { data, error } = await supabase
-        .from('brokers')
-        .select('id, name, logo_url, supported_platforms, api_endpoint')
-        .order('name', { ascending: true });
+        .from("brokers")
+        .select("id, name, logo_url, supported_platforms, api_endpoint")
+        .order("name", { ascending: true });
 
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching brokers:', error);
+      console.error("Error fetching brokers:", error);
       return [];
     }
   }
@@ -46,21 +46,58 @@ class BrokerService {
   /**
    * Get servers for a specific broker
    */
-  async getBrokerServers(brokerId: string, broker: Broker): Promise<BrokerServer[]> {
+  async getBrokerServers(
+    brokerId: string,
+    broker: Broker,
+  ): Promise<BrokerServer[]> {
     // Return standard live/demo servers for all MT4/MT5 brokers
     const servers: BrokerServer[] = [];
 
-    if (broker.supported_platforms.includes('MT4') || broker.supported_platforms.includes('MT5')) {
+    if (
+      broker.supported_platforms.includes("MT4") ||
+      broker.supported_platforms.includes("MT5")
+    ) {
       servers.push(
-        { name: `${broker.name} Live`, description: 'Live Trading Server', environment: 'live' },
-        { name: `${broker.name} Demo`, description: 'Demo Trading Server', environment: 'demo' }
+        {
+          name: `${broker.name} Live`,
+          description: "Live Trading Server",
+          environment: "live",
+        },
+        {
+          name: `${broker.name} Demo`,
+          description: "Demo Trading Server",
+          environment: "demo",
+        },
       );
     }
 
-    if (broker.supported_platforms.includes('cTrader')) {
+    if (broker.supported_platforms.includes("cTrader")) {
       servers.push(
-        { name: `${broker.name} cTrader Live`, description: 'cTrader Live Server', environment: 'live' },
-        { name: `${broker.name} cTrader Demo`, description: 'cTrader Demo Server', environment: 'demo' }
+        {
+          name: `${broker.name} cTrader Live`,
+          description: "cTrader Live Server",
+          environment: "live",
+        },
+        {
+          name: `${broker.name} cTrader Demo`,
+          description: "cTrader Demo Server",
+          environment: "demo",
+        },
+      );
+    }
+
+    if (broker.supported_platforms.includes("DXTrade")) {
+      servers.push(
+        {
+          name: `${broker.name} DXTrade Live`,
+          description: "DXTrade Live Server",
+          environment: "live",
+        },
+        {
+          name: `${broker.name} DXTrade Demo`,
+          description: "DXTrade Demo Server",
+          environment: "demo",
+        },
       );
     }
 
@@ -76,17 +113,21 @@ class BrokerService {
     broker: Broker,
     server: string,
     platform: string,
-    credentials: { accountId: string; password: string }
+    credentials: { accountId: string; password: string },
   ): Promise<BrokerAccount[]> {
     try {
-      // Call Supabase Edge function that handles broker-specific API calls
+      const session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        throw new Error("User not authenticated");
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-broker-accounts`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token || ''}`,
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.data.session.access_token}`,
           },
           body: JSON.stringify({
             broker_id: brokerId,
@@ -96,17 +137,24 @@ class BrokerService {
             account_id: credentials.accountId,
             password: credentials.password,
           }),
-        }
+        },
       );
 
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || `Failed to fetch accounts: ${response.statusText}`,
+        );
       }
 
-      return data.accounts || [];
+      const data = await response.json();
+      if (!data.accounts || !Array.isArray(data.accounts)) {
+        throw new Error("Invalid response format from broker");
+      }
+
+      return data.accounts as BrokerAccount[];
     } catch (error) {
-      console.error('Error fetching broker accounts:', error);
+      console.error("Error fetching broker accounts:", error);
       throw error;
     }
   }
@@ -117,16 +165,54 @@ class BrokerService {
   async getBrokerById(brokerId: string): Promise<Broker | null> {
     try {
       const { data, error } = await supabase
-        .from('brokers')
-        .select('*')
-        .eq('id', brokerId)
+        .from("brokers")
+        .select("*")
+        .eq("id", brokerId)
         .single();
 
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching broker:', error);
+      console.error("Error fetching broker:", error);
       return null;
+    }
+  }
+
+  /**
+   * Validate broker connection - test if credentials work
+   */
+  async validateConnection(
+    broker: Broker,
+    platform: string,
+    server: string,
+    accountId: string,
+    password: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const accounts = await this.fetchBrokerAccounts(
+        broker.id,
+        broker,
+        server,
+        platform,
+        { accountId, password },
+      );
+
+      if (accounts.length === 0) {
+        return {
+          success: false,
+          message: "No accounts found with these credentials",
+        };
+      }
+
+      return {
+        success: true,
+        message: `Successfully connected to ${broker.name}. Found ${accounts.length} account(s)`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Connection failed",
+      };
     }
   }
 }

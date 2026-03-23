@@ -1,7 +1,14 @@
-import { useState } from 'react';
-import { Pause, Play, Trash2, Clock, TrendingUp, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { useTradeCopy, useCopyStatistics } from '../hooks/useTradesCopy';
+import { useState } from "react";
+import {
+  Pause,
+  Play,
+  Trash2,
+  Clock,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { useTradeCopy, useCopyStatistics } from "../hooks/useTradesCopy";
 
 interface CopierConfigCardProps {
   config: any;
@@ -27,7 +34,7 @@ export function CopierConfigCard({
   // Get copy statistics
   const { stats, loading: statsLoading } = useCopyStatistics(
     config.slave_account_id,
-    30
+    30,
   );
 
   const handleManualSync = async () => {
@@ -42,13 +49,13 @@ export function CopierConfigCard({
   const handleToggle = async () => {
     try {
       await supabase
-        .from('copier_configurations')
+        .from("copier_configurations")
         .update({ enabled: !config.enabled })
-        .eq('id', config.id);
+        .eq("id", config.id);
 
       onToggle(config.id, !config.enabled);
     } catch (error) {
-      console.error('Error toggling config:', error);
+      console.error("Error toggling config:", error);
     }
   };
 
@@ -58,7 +65,8 @@ export function CopierConfigCard({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">
-            {config.master_account?.account_name} → {config.slave_account?.account_name}
+            {config.master_account?.account_name} →{" "}
+            {config.slave_account?.account_name}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
             {config.master_account?.broker} ({config.master_account?.platform})
@@ -70,8 +78,8 @@ export function CopierConfigCard({
             onClick={handleToggle}
             className={`px-3 py-2 rounded-lg transition-colors flex items-center gap-2 ${
               config.enabled
-                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? "bg-green-100 text-green-700 hover:bg-green-200"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             }`}
           >
             {config.enabled ? (
@@ -99,21 +107,35 @@ export function CopierConfigCard({
       {/* Settings Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div>
-          <p className="text-xs font-medium text-gray-600 uppercase">Lot Multiplier</p>
-          <p className="text-lg font-semibold text-gray-900">{config.lot_multiplier}x</p>
+          <p className="text-xs font-medium text-gray-600 uppercase">
+            Lot Multiplier
+          </p>
+          <p className="text-lg font-semibold text-gray-900">
+            {config.lot_multiplier}x
+          </p>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-600 uppercase">Max Daily Loss</p>
-          <p className="text-lg font-semibold text-gray-900">${config.max_daily_loss}</p>
+          <p className="text-xs font-medium text-gray-600 uppercase">
+            Max Daily Loss
+          </p>
+          <p className="text-lg font-semibold text-gray-900">
+            ${config.max_daily_loss}
+          </p>
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-600 uppercase">Max Trades</p>
-          <p className="text-lg font-semibold text-gray-900">{config.max_trades}</p>
+          <p className="text-xs font-medium text-gray-600 uppercase">
+            Max Trades
+          </p>
+          <p className="text-lg font-semibold text-gray-900">
+            {config.max_trades}
+          </p>
         </div>
         <div>
           <p className="text-xs font-medium text-gray-600 uppercase">Status</p>
-          <p className={`text-lg font-semibold ${config.enabled ? 'text-green-600' : 'text-gray-400'}`}>
-            {config.enabled ? 'Running' : 'Stopped'}
+          <p
+            className={`text-lg font-semibold ${config.enabled ? "text-green-600" : "text-gray-400"}`}
+          >
+            {config.enabled ? "Running" : "Stopped"}
           </p>
         </div>
       </div>
@@ -124,11 +146,9 @@ export function CopierConfigCard({
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-brand" />
             <span className="text-sm text-gray-700">
-              Last Sync:{' '}
+              Last Sync:{" "}
               <span className="font-medium">
-                {lastSyncTime
-                  ? lastSyncTime.toLocaleTimeString()
-                  : 'Never'}
+                {lastSyncTime ? lastSyncTime.toLocaleTimeString() : "Never"}
               </span>
             </span>
           </div>
@@ -138,7 +158,7 @@ export function CopierConfigCard({
             disabled={syncing || !config.enabled}
             className="px-3 py-1 text-sm bg-brand text-white rounded hover:bg-brand-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {syncing ? 'Syncing...' : 'Sync Now'}
+            {syncing ? "Syncing..." : "Sync Now"}
           </button>
         </div>
 
@@ -161,28 +181,44 @@ export function CopierConfigCard({
       {stats && !statsLoading && (
         <div className="pt-4 border-t border-gray-200 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs font-medium text-gray-600 uppercase">Total Copied</p>
-            <p className="text-lg font-semibold text-gray-900">{stats.total_trades}</p>
+            <p className="text-xs font-medium text-gray-600 uppercase">
+              Total Copied
+            </p>
+            <p className="text-lg font-semibold text-gray-900">
+              {stats.total_trades}
+            </p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-600 uppercase">Closed</p>
-            <p className="text-lg font-semibold text-gray-900">{stats.closed_trades}</p>
+            <p className="text-xs font-medium text-gray-600 uppercase">
+              Closed
+            </p>
+            <p className="text-lg font-semibold text-gray-900">
+              {stats.closed_trades}
+            </p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-600 uppercase">Win Rate</p>
-            <p className={`text-lg font-semibold ${
-              stats.win_rate >= 50 ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <p className="text-xs font-medium text-gray-600 uppercase">
+              Win Rate
+            </p>
+            <p
+              className={`text-lg font-semibold ${
+                stats.win_rate >= 50 ? "text-green-600" : "text-red-600"
+              }`}
+            >
               {stats.win_rate.toFixed(1)}%
             </p>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-600 uppercase">Total P&L</p>
-            <p className={`text-lg font-semibold flex items-center gap-1 ${
-              stats.total_profit >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats.total_profit >= 0 && <TrendingUp className="w-4 h-4" />}
-              ${stats.total_profit.toFixed(2)}
+            <p className="text-xs font-medium text-gray-600 uppercase">
+              Total P&L
+            </p>
+            <p
+              className={`text-lg font-semibold flex items-center gap-1 ${
+                stats.total_profit >= 0 ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {stats.total_profit >= 0 && <TrendingUp className="w-4 h-4" />}$
+              {stats.total_profit.toFixed(2)}
             </p>
           </div>
         </div>

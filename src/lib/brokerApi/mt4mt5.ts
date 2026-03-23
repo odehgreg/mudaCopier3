@@ -9,19 +9,19 @@ import {
   BrokerTrade,
   BrokerConnection,
   BrokerSyncResult,
-} from './types';
+} from "./types";
 
 export class MT4MT5BrokerAdapter extends BrokerAdapter {
-  private apiKey: string = '';
-  private apiSecret: string = '';
-  private baseUrl: string = '';
+  private apiKey: string = "";
+  private apiSecret: string = "";
+  private baseUrl: string = "";
   private connectionRetries: number = 3;
   private retryDelay: number = 1000;
 
   constructor(
     brokerName: string,
     accountId: string,
-    baseUrl: string = 'https://mt4-bridge.example.com/api'
+    baseUrl: string = "https://mt4-bridge.example.com/api",
   ) {
     super(brokerName, accountId);
     this.baseUrl = baseUrl;
@@ -35,12 +35,12 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
     for (let attempt = 0; attempt < this.connectionRetries; attempt++) {
       try {
         const response = await fetch(`${this.baseUrl}/auth`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             accountId: this.accountId,
             password: credentials.password,
-            server: credentials.server || 'default',
+            server: credentials.server || "default",
           }),
         });
 
@@ -53,7 +53,9 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
         this.apiSecret = data.apiSecret;
         this.connected = true;
 
-        console.log(`Connected to ${this.brokerName} MT4/MT5 account ${this.accountId}`);
+        console.log(
+          `Connected to ${this.brokerName} MT4/MT5 account ${this.accountId}`,
+        );
         return;
       } catch (error) {
         if (attempt === this.connectionRetries - 1) {
@@ -72,12 +74,12 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
 
     try {
       await fetch(`${this.baseUrl}/disconnect`, {
-        method: 'POST',
+        method: "POST",
         headers: this.getHeaders(),
       });
       this.connected = false;
     } catch (error) {
-      console.error('Error disconnecting:', error);
+      console.error("Error disconnecting:", error);
     }
   }
 
@@ -104,7 +106,7 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
       freeMargin: data.freeMargin,
       usedMargin: data.usedMargin,
       marginLevel: (data.equity / (data.usedMargin || 1)) * 100,
-      status: this.connected ? 'connected' : 'disconnected',
+      status: this.connected ? "connected" : "disconnected",
     };
   }
 
@@ -135,7 +137,7 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
       `${this.baseUrl}/trades?type=closed&since=${sinceDate.toISOString()}`,
       {
         headers: this.getHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -149,9 +151,13 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
   /**
    * Close a trade
    */
-  async closeTrade(ticket: string, volume: number, price?: number): Promise<boolean> {
+  async closeTrade(
+    ticket: string,
+    volume: number,
+    price?: number,
+  ): Promise<boolean> {
     const response = await fetch(`${this.baseUrl}/trades/${ticket}/close`, {
-      method: 'POST',
+      method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify({
         volume,
@@ -167,16 +173,16 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
    */
   async openTrade(
     symbol: string,
-    tradeType: 'BUY' | 'SELL',
+    tradeType: "BUY" | "SELL",
     volume: number,
-    price?: number
+    price?: number,
   ): Promise<BrokerTrade> {
     const response = await fetch(`${this.baseUrl}/trades/open`, {
-      method: 'POST',
+      method: "POST",
       headers: this.getHeaders(),
       body: JSON.stringify({
         symbol,
-        type: tradeType === 'BUY' ? 0 : 1,
+        type: tradeType === "BUY" ? 0 : 1,
         volume,
         price: price || 0,
         slippage: 10,
@@ -197,9 +203,9 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
 
   private getHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${this.apiKey}`,
-      'X-API-Secret': this.apiSecret,
+      "X-API-Secret": this.apiSecret,
     };
   }
 
@@ -207,7 +213,7 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
     return {
       ticket: String(data.ticket),
       symbol: data.symbol,
-      tradeType: data.type === 0 ? 'BUY' : 'SELL',
+      tradeType: data.type === 0 ? "BUY" : "SELL",
       volume: data.volume,
       openPrice: data.openPrice,
       openTime: new Date(data.openTime),
@@ -217,7 +223,7 @@ export class MT4MT5BrokerAdapter extends BrokerAdapter {
       commission: data.commission || 0,
       swap: data.swap || 0,
       comment: data.comment,
-      status: data.closeTime ? 'closed' : 'open',
+      status: data.closeTime ? "closed" : "open",
     };
   }
 

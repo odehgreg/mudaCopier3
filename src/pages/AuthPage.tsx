@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { TrendingUp } from 'lucide-react';
-import { LoginForm } from '../components/Auth/LoginForm';
-import { RegisterForm } from '../components/Auth/RegisterForm';
+import { useState } from "react";
+import { TrendingUp } from "lucide-react";
+import { LoginForm } from "../components/Auth/LoginForm";
+import { RegisterForm } from "../components/Auth/RegisterForm";
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,14 +16,12 @@ export function AuthPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             TradersConnect
           </h1>
-          <p className="text-gray-600">
-            Cloud-based trade copier platform
-          </p>
+          <p className="text-gray-600">Cloud-based trade copier platform</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            {isLogin ? "Welcome Back" : "Create Account"}
           </h2>
 
           {isLogin ? (

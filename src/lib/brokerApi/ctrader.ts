@@ -8,12 +8,12 @@ import {
   BrokerAccount,
   BrokerTrade,
   BrokerConnection,
-} from './types';
+} from "./types";
 
 export class CTraderBrokerAdapter extends BrokerAdapter {
-  private accessToken: string = '';
-  private ctidTraderAccountId: string = '';
-  private baseUrl: string = 'https://openapi.ctrader.com';
+  private accessToken: string = "";
+  private ctidTraderAccountId: string = "";
+  private baseUrl: string = "https://openapi.ctrader.com";
 
   constructor(brokerName: string, accountId: string) {
     super(brokerName, accountId);
@@ -27,27 +27,29 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       // In production, this would use proper OAuth2 flow
       // For now, we expect the password field to contain the API key
       const response = await fetch(`${this.baseUrl}/v1/auth/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          grant_type: 'client_credentials',
+          grant_type: "client_credentials",
           client_id: this.accountId,
           client_secret: credentials.password,
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`cTrader authentication failed: ${response.statusText}`);
+        throw new Error(
+          `cTrader authentication failed: ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
       this.accessToken = data.access_token;
-      this.ctidTraderAccountId = credentials.accountId || '';
+      this.ctidTraderAccountId = credentials.accountId || "";
       this.connected = true;
 
       console.log(`Connected to cTrader account ${this.accountId}`);
     } catch (error) {
-      console.error('cTrader connection error:', error);
+      console.error("cTrader connection error:", error);
       throw error;
     }
   }
@@ -56,7 +58,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
    * Disconnect from cTrader
    */
   async disconnect(): Promise<void> {
-    this.accessToken = '';
+    this.accessToken = "";
     this.connected = false;
   }
 
@@ -68,11 +70,13 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       `${this.baseUrl}/v1/accounts/${this.ctidTraderAccountId}`,
       {
         headers: this.getHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch cTrader account: ${response.statusText}`);
+      throw new Error(
+        `Failed to fetch cTrader account: ${response.statusText}`,
+      );
     }
 
     const data = await response.json();
@@ -88,7 +92,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       freeMargin: (account.equity - account.usedMargin) / 100,
       usedMargin: account.usedMargin / 100,
       marginLevel: (account.equity / (account.usedMargin || 1)) * 100,
-      status: 'connected',
+      status: "connected",
     };
   }
 
@@ -100,7 +104,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       `${this.baseUrl}/v1/accounts/${this.ctidTraderAccountId}/positions`,
       {
         headers: this.getHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -121,7 +125,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       `${this.baseUrl}/v1/accounts/${this.ctidTraderAccountId}/deals?fromTimestamp=${sinceTime}`,
       {
         headers: this.getHeaders(),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -130,7 +134,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
 
     const data = await response.json();
     return (data.deals || [])
-      .filter((d: any) => d.dealStatus === 'CLOSED')
+      .filter((d: any) => d.dealStatus === "CLOSED")
       .map(this.parseDeal.bind(this));
   }
 
@@ -142,17 +146,17 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       const response = await fetch(
         `${this.baseUrl}/v1/accounts/${this.ctidTraderAccountId}/positions/${ticket}/close`,
         {
-          method: 'POST',
+          method: "POST",
           headers: this.getHeaders(),
           body: JSON.stringify({
             volume,
           }),
-        }
+        },
       );
 
       return response.ok;
     } catch (error) {
-      console.error('Error closing trade:', error);
+      console.error("Error closing trade:", error);
       return false;
     }
   }
@@ -162,25 +166,25 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
    */
   async openTrade(
     symbol: string,
-    tradeType: 'BUY' | 'SELL',
+    tradeType: "BUY" | "SELL",
     volume: number,
-    price?: number
+    price?: number,
   ): Promise<BrokerTrade> {
     const response = await fetch(
       `${this.baseUrl}/v1/accounts/${this.ctidTraderAccountId}/positions/open`,
       {
-        method: 'POST',
+        method: "POST",
         headers: this.getHeaders(),
         body: JSON.stringify({
           symbolId: symbol,
           tradeData: {
-            orderType: 'MARKET',
+            orderType: "MARKET",
             tradeSide: tradeType,
             volume,
             limitPrice: price || 0,
           },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -197,7 +201,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
 
   private getHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${this.accessToken}`,
     };
   }
@@ -206,14 +210,14 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
     return {
       ticket: String(data.positionId),
       symbol: data.symbol || data.symbolId,
-      tradeType: data.tradeSide === 'BUY' ? 'BUY' : 'SELL',
+      tradeType: data.tradeSide === "BUY" ? "BUY" : "SELL",
       volume: data.volume / 100, // cTrader volumes in cents
       openPrice: data.entryPrice / 100000, // cTrader prices in micro
       openTime: new Date(data.createTimestamp),
       profit: data.profit / 100,
       commission: data.commission / 100,
       swap: data.swap / 100,
-      status: 'open',
+      status: "open",
     };
   }
 
@@ -221,7 +225,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
     return {
       ticket: String(data.dealId),
       symbol: data.symbol,
-      tradeType: data.dealSide === 'BUY' ? 'BUY' : 'SELL',
+      tradeType: data.dealSide === "BUY" ? "BUY" : "SELL",
       volume: data.volume / 100,
       openPrice: data.entryPrice / 100000,
       closePrice: data.exitPrice / 100000,
@@ -230,7 +234,7 @@ export class CTraderBrokerAdapter extends BrokerAdapter {
       profit: data.profit / 100,
       commission: data.commission / 100,
       swap: data.swap / 100,
-      status: 'closed',
+      status: "closed",
     };
   }
 }

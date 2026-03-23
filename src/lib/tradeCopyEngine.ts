@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from "./supabase";
 
 export interface TradeCopyConfig {
   id: string;
@@ -14,7 +14,7 @@ export interface TradeCopyConfig {
 export interface TradeSignal {
   ticket_number: string;
   symbol: string;
-  trade_type: 'BUY' | 'SELL';
+  trade_type: "BUY" | "SELL";
   lot_size: number;
   open_price: number;
 }
@@ -32,18 +32,18 @@ class TradeCopyEngine {
    */
   async monitorAndCopyTrades(
     masterAccountId: string,
-    userId: string
+    userId: string,
   ): Promise<TradeCopyResult[]> {
     const results: TradeCopyResult[] = [];
 
     try {
       // Get all copy configurations for this master account
       const configsResponse = await supabase
-        .from('copier_configurations')
-        .select('*')
-        .eq('master_account_id', masterAccountId)
-        .eq('enabled', true)
-        .eq('user_id', userId);
+        .from("copier_configurations")
+        .select("*")
+        .eq("master_account_id", masterAccountId)
+        .eq("enabled", true)
+        .eq("user_id", userId);
 
       if (configsResponse.error) throw configsResponse.error;
       const configs = configsResponse.data || [];
@@ -54,11 +54,11 @@ class TradeCopyEngine {
 
       // Get recent open trades from master account
       const tradesResponse = await supabase
-        .from('trades')
-        .select('*')
-        .eq('account_id', masterAccountId)
-        .eq('status', 'open')
-        .order('created_at', { ascending: false })
+        .from("trades")
+        .select("*")
+        .eq("account_id", masterAccountId)
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
         .limit(50);
 
       if (tradesResponse.error) throw tradesResponse.error;
@@ -69,10 +69,10 @@ class TradeCopyEngine {
         for (const masterTrade of masterTrades) {
           // Check if trade was already copied
           const existingCopyResponse = await supabase
-            .from('trades')
-            .select('id')
-            .eq('account_id', config.slave_account_id)
-            .eq('ticket_number', `${masterTrade.ticket_number}-copy`)
+            .from("trades")
+            .select("id")
+            .eq("account_id", config.slave_account_id)
+            .eq("ticket_number", `${masterTrade.ticket_number}-copy`)
             .single();
 
           // Skip if already copied
@@ -86,7 +86,7 @@ class TradeCopyEngine {
           // Check daily loss limit
           const dailyLossOk = await this.checkDailyLossLimit(
             config.slave_account_id,
-            config.max_daily_loss
+            config.max_daily_loss,
           );
 
           if (!dailyLossOk) {
@@ -101,7 +101,7 @@ class TradeCopyEngine {
           // Check max concurrent trades
           const concurrentTradesOk = await this.checkConcurrentTradesLimit(
             config.slave_account_id,
-            config.max_trades
+            config.max_trades,
           );
 
           if (!concurrentTradesOk) {
@@ -118,7 +118,7 @@ class TradeCopyEngine {
             masterTrade,
             config.slave_account_id,
             userId,
-            copiedLotSize
+            copiedLotSize,
           );
 
           results.push({
@@ -131,7 +131,7 @@ class TradeCopyEngine {
 
       return results;
     } catch (error) {
-      console.error('Error monitoring and copying trades:', error);
+      console.error("Error monitoring and copying trades:", error);
       throw error;
     }
   }
@@ -143,10 +143,10 @@ class TradeCopyEngine {
     masterTrade: any,
     slaveAccountId: string,
     userId: string,
-    copiedLotSize: number
+    copiedLotSize: number,
   ): Promise<any> {
     const { data, error } = await supabase
-      .from('trades')
+      .from("trades")
       .insert({
         user_id: userId,
         account_id: slaveAccountId,
@@ -155,7 +155,7 @@ class TradeCopyEngine {
         trade_type: masterTrade.trade_type,
         lot_size: copiedLotSize,
         open_price: masterTrade.open_price,
-        status: 'open',
+        status: "open",
         opened_at: new Date().toISOString(),
       })
       .select()
@@ -171,17 +171,17 @@ class TradeCopyEngine {
   async syncClosedTrade(
     masterTrade: any,
     masterAccountId: string,
-    userId: string
+    userId: string,
   ): Promise<TradeCopyResult[]> {
     const results: TradeCopyResult[] = [];
 
     try {
       // Get all configurations for this master account
       const configsResponse = await supabase
-        .from('copier_configurations')
-        .select('*')
-        .eq('master_account_id', masterAccountId)
-        .eq('user_id', userId);
+        .from("copier_configurations")
+        .select("*")
+        .eq("master_account_id", masterAccountId)
+        .eq("user_id", userId);
 
       if (configsResponse.error) throw configsResponse.error;
       const configs = configsResponse.data || [];
@@ -189,10 +189,10 @@ class TradeCopyEngine {
       // Close corresponding trades in slave accounts
       for (const config of configs) {
         const copiedTradeResponse = await supabase
-          .from('trades')
-          .select('*')
-          .eq('account_id', config.slave_account_id)
-          .eq('ticket_number', `${masterTrade.ticket_number}-copy`)
+          .from("trades")
+          .select("*")
+          .eq("account_id", config.slave_account_id)
+          .eq("ticket_number", `${masterTrade.ticket_number}-copy`)
           .single();
 
         if (copiedTradeResponse.data) {
@@ -203,14 +203,14 @@ class TradeCopyEngine {
             masterTrade.profit * (copiedTrade.lot_size / masterTrade.lot_size);
 
           const { error } = await supabase
-            .from('trades')
+            .from("trades")
             .update({
-              status: 'closed',
+              status: "closed",
               close_price: masterTrade.close_price,
               profit: profit,
               closed_at: new Date().toISOString(),
             })
-            .eq('id', copiedTrade.id);
+            .eq("id", copiedTrade.id);
 
           if (error) throw error;
 
@@ -224,7 +224,7 @@ class TradeCopyEngine {
 
       return results;
     } catch (error) {
-      console.error('Error syncing closed trade:', error);
+      console.error("Error syncing closed trade:", error);
       throw error;
     }
   }
@@ -234,19 +234,19 @@ class TradeCopyEngine {
    */
   private async checkDailyLossLimit(
     accountId: string,
-    maxDailyLoss: number
+    maxDailyLoss: number,
   ): Promise<boolean> {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
 
       const { data: stats, error } = await supabase
-        .from('performance_stats')
-        .select('total_loss')
-        .eq('account_id', accountId)
-        .eq('date', today)
+        .from("performance_stats")
+        .select("total_loss")
+        .eq("account_id", accountId)
+        .eq("date", today)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         // PGRST116 = no rows found, which is fine
         throw error;
       }
@@ -254,7 +254,7 @@ class TradeCopyEngine {
       const totalLoss = stats?.total_loss || 0;
       return Math.abs(totalLoss) < maxDailyLoss;
     } catch (error) {
-      console.error('Error checking daily loss limit:', error);
+      console.error("Error checking daily loss limit:", error);
       return false;
     }
   }
@@ -264,20 +264,20 @@ class TradeCopyEngine {
    */
   private async checkConcurrentTradesLimit(
     accountId: string,
-    maxTrades: number
+    maxTrades: number,
   ): Promise<boolean> {
     try {
       const { count, error } = await supabase
-        .from('trades')
-        .select('*', { count: 'exact', head: true })
-        .eq('account_id', accountId)
-        .eq('status', 'open');
+        .from("trades")
+        .select("*", { count: "exact", head: true })
+        .eq("account_id", accountId)
+        .eq("status", "open");
 
       if (error) throw error;
 
       return (count || 0) < maxTrades;
     } catch (error) {
-      console.error('Error checking concurrent trades limit:', error);
+      console.error("Error checking concurrent trades limit:", error);
       return false;
     }
   }
@@ -286,19 +286,19 @@ class TradeCopyEngine {
    * Get copy configuration
    */
   async getCopyConfiguration(
-    configId: string
+    configId: string,
   ): Promise<TradeCopyConfig | null> {
     try {
       const { data, error } = await supabase
-        .from('copier_configurations')
-        .select('*')
-        .eq('id', configId)
+        .from("copier_configurations")
+        .select("*")
+        .eq("id", configId)
         .single();
 
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching copy configuration:', error);
+      console.error("Error fetching copy configuration:", error);
       return null;
     }
   }
@@ -308,20 +308,20 @@ class TradeCopyEngine {
    */
   async updateCopyConfiguration(
     configId: string,
-    updates: Partial<TradeCopyConfig>
+    updates: Partial<TradeCopyConfig>,
   ): Promise<TradeCopyConfig | null> {
     try {
       const { data, error } = await supabase
-        .from('copier_configurations')
+        .from("copier_configurations")
         .update(updates)
-        .eq('id', configId)
+        .eq("id", configId)
         .select()
         .single();
 
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating copy configuration:', error);
+      console.error("Error updating copy configuration:", error);
       return null;
     }
   }
@@ -331,23 +331,23 @@ class TradeCopyEngine {
    */
   async getCopyStatistics(
     slaveAccountId: string,
-    days: number = 30
+    days: number = 30,
   ): Promise<any> {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
       const { data, error } = await supabase
-        .from('trades')
-        .select('*')
-        .eq('account_id', slaveAccountId)
-        .like('ticket_number', '%-copy%')
-        .gte('opened_at', startDate.toISOString());
+        .from("trades")
+        .select("*")
+        .eq("account_id", slaveAccountId)
+        .like("ticket_number", "%-copy%")
+        .gte("opened_at", startDate.toISOString());
 
       if (error) throw error;
 
       const trades = data || [];
-      const closedTrades = trades.filter((t) => t.status === 'closed');
+      const closedTrades = trades.filter((t) => t.status === "closed");
       const winningTrades = closedTrades.filter((t) => t.profit > 0);
 
       return {
@@ -362,7 +362,7 @@ class TradeCopyEngine {
             : 0,
       };
     } catch (error) {
-      console.error('Error fetching copy statistics:', error);
+      console.error("Error fetching copy statistics:", error);
       return null;
     }
   }
