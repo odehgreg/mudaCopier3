@@ -3,7 +3,7 @@
  * Manages broker connections and routing
  */
 
-import { BrokerAdapter, BrokerConnection } from "./types";
+import { BrokerAdapter } from "./types";
 import { MT4MT5BrokerAdapter } from "./mt4mt5";
 import { CTraderBrokerAdapter } from "./ctrader";
 import { DXTradeBrokerAdapter } from "./dxtrade";

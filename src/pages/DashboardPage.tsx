@@ -27,7 +27,6 @@ export function DashboardPage() {
     winRate: 0,
   });
   const [recentTrades, setRecentTrades] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
@@ -82,8 +81,6 @@ export function DashboardPage() {
       setRecentTrades(trades);
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-    } finally {
-      setLoading(false);
     }
   };
 

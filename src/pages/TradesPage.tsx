@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 interface Trade {
   id: string;
+  account_id: string;
   ticket_number: string;
   symbol: string;
   trade_type: "BUY" | "SELL";

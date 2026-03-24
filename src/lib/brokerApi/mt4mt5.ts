@@ -8,7 +8,6 @@ import {
   BrokerAccount,
   BrokerTrade,
   BrokerConnection,
-  BrokerSyncResult,
 } from "./types";
 
 export class MT4MT5BrokerAdapter extends BrokerAdapter {

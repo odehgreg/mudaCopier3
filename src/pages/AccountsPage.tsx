@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Check, X, Loader } from "lucide-react";
+import { Plus, Trash2, X, Loader } from "lucide-react";
 import Select from "react-select";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -39,7 +39,6 @@ export function AccountsPage() {
   const [selectedBrokerAccounts, setSelectedBrokerAccounts] = useState<
     BrokerAccount[]
   >([]);
-  const [brokerSearchQuery, setBrokerSearchQuery] = useState("");
   // Remove old dropdown state
   const [formData, setFormData] = useState({
     account_name: "",
@@ -551,6 +550,7 @@ export function AccountsPage() {
                   account_name: "",
                   platform: "MT5",
                   broker_id: "",
+                  broker_name: "",
                   server: "",
                   account_id: "",
                   account_password: "",

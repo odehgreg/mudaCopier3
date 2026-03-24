@@ -2,8 +2,8 @@
  * Broker API Module - Exports all broker-related utilities
  */
 
-export {
-  BrokerAdapter,
+export { BrokerAdapter } from "./types";
+export type {
   BrokerAccount,
   BrokerTrade,
   BrokerConnection,

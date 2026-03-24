@@ -47,7 +47,7 @@ class BrokerService {
    * Get servers for a specific broker
    */
   async getBrokerServers(
-    brokerId: string,
+    _brokerId: string,
     broker: Broker,
   ): Promise<BrokerServer[]> {
     // Return standard live/demo servers for all MT4/MT5 brokers
