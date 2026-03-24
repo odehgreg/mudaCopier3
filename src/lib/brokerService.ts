@@ -114,6 +114,7 @@ class BrokerService {
     server: string,
     platform: string,
     credentials: { accountId: string; password: string },
+    options: { allowDemoFallback?: boolean } = {},
   ): Promise<BrokerAccount[]> {
     try {
       const session = await supabase.auth.getSession();
@@ -136,6 +137,7 @@ class BrokerService {
             platform,
             account_id: credentials.accountId,
             password: credentials.password,
+            allow_demo_fallback: options.allowDemoFallback ?? false,
           }),
         },
       );
@@ -195,6 +197,7 @@ class BrokerService {
         server,
         platform,
         { accountId, password },
+        { allowDemoFallback: false },
       );
 
       if (accounts.length === 0) {

@@ -14,6 +14,9 @@ interface FetchAccountsRequest {
   server: string;
   account_id: string;
   password: string;
+  mode?: "accounts" | "trades";
+  allow_demo_fallback?: boolean;
+  last_sync?: string;
 }
 
 interface Account {
@@ -24,6 +27,19 @@ interface Account {
   currency: string;
   platform: string;
   server?: string;
+}
+
+interface Trade {
+  ticket: string;
+  symbol: string;
+  type: "BUY" | "SELL";
+  lots: number;
+  openPrice: number;
+  closePrice?: number;
+  profit: number;
+  status: "open" | "closed";
+  openTime: string;
+  closeTime?: string;
 }
 
 /**
@@ -68,7 +84,14 @@ const brokerApiEndpoints: { [key: string]: { url: string; type: string } } = {
 async function connectToBrokerAndFetchAccounts(
   req: FetchAccountsRequest,
 ): Promise<Account[]> {
-  const { broker_name, platform, server, account_id, password } = req;
+  const {
+    broker_name,
+    platform,
+    server,
+    account_id,
+    password,
+    allow_demo_fallback = false,
+  } = req;
 
   try {
     console.log(`Connecting to ${broker_name} (${platform})`);
@@ -89,6 +112,7 @@ async function connectToBrokerAndFetchAccounts(
           account_id,
           password,
           broker_name,
+          allow_demo_fallback,
         );
       } else if (brokerConfig?.type === "DUKASCOPY") {
         accounts = await fetchDukascopyAccounts(
@@ -96,6 +120,7 @@ async function connectToBrokerAndFetchAccounts(
           account_id,
           password,
           broker_name,
+          allow_demo_fallback,
         );
       } else if (brokerConfig?.type === "MT4_BRIDGE" || !brokerConfig) {
         // Generic MT4/MT5 bridge
@@ -107,11 +132,17 @@ async function connectToBrokerAndFetchAccounts(
           server,
           platform,
           broker_name,
+          allow_demo_fallback,
         );
       }
     } else if (platform === "cTrader") {
       // cTrader connection
-      accounts = await fetchCTraderAccounts(account_id, password, broker_name);
+      accounts = await fetchCTraderAccounts(
+        account_id,
+        password,
+        broker_name,
+        allow_demo_fallback,
+      );
     } else if (platform === "DXTrade") {
       // DXTrade connection
       accounts = await fetchDXTradeAccounts(
@@ -119,6 +150,7 @@ async function connectToBrokerAndFetchAccounts(
         account_id,
         password,
         broker_name,
+        allow_demo_fallback,
       );
     } else {
       throw new Error(`Unsupported platform: ${platform}`);
@@ -134,6 +166,51 @@ async function connectToBrokerAndFetchAccounts(
   }
 }
 
+async function fetchBrokerTrades(req: FetchAccountsRequest): Promise<Trade[]> {
+  const {
+    broker_name,
+    platform,
+    server,
+    account_id,
+    password,
+    allow_demo_fallback = false,
+  } = req;
+
+  const brokerConfig = brokerApiEndpoints[broker_name];
+
+  if (platform === "MT4" || platform === "MT5") {
+    if (brokerConfig?.type === "OANDA" || brokerConfig?.type === "DUKASCOPY") {
+      throw new Error(
+        `Trade sync is not yet implemented for ${broker_name} accounts`,
+      );
+    }
+
+    const apiUrl = brokerConfig?.url || "https://mt-bridge.example.com/api";
+    return fetchMT4MT5Trades(
+      apiUrl,
+      account_id,
+      password,
+      server,
+      allow_demo_fallback,
+    );
+  }
+
+  if (platform === "cTrader") {
+    return fetchCTraderTrades(account_id, password, allow_demo_fallback);
+  }
+
+  if (platform === "DXTrade") {
+    return fetchDXTradeTrades(
+      brokerConfig?.url || "https://api.dxtrade.com",
+      account_id,
+      password,
+      allow_demo_fallback,
+    );
+  }
+
+  throw new Error(`Unsupported platform for trade sync: ${platform}`);
+}
+
 /**
  * Fetch accounts from OANDA broker (real REST API)
  * OANDA has a proper public API
@@ -143,6 +220,7 @@ async function fetchOANDAAccounts(
   accountId: string,
   apiToken: string,
   brokerName: string,
+  allowDemoFallback: boolean,
 ): Promise<Account[]> {
   try {
     // OANDA API call to get account details
@@ -180,7 +258,9 @@ async function fetchOANDAAccounts(
     ];
   } catch (error) {
     console.error("Error fetching OANDA accounts:", error);
-    // Return demo data if API fails
+    if (!allowDemoFallback) {
+      throw error;
+    }
     return [
       {
         account_number: accountId,
@@ -203,6 +283,7 @@ async function fetchDukascopyAccounts(
   accountId: string,
   password: string,
   brokerName: string,
+  allowDemoFallback: boolean,
 ): Promise<Account[]> {
   try {
     // Dukascopy authentication
@@ -247,7 +328,9 @@ async function fetchDukascopyAccounts(
     }));
   } catch (error) {
     console.error("Error fetching Dukascopy accounts:", error);
-    // Return demo data if API fails
+    if (!allowDemoFallback) {
+      throw error;
+    }
     return [
       {
         account_number: accountId,
@@ -273,6 +356,7 @@ async function fetchMT4MT5Accounts(
   server: string,
   platform: string,
   brokerName: string,
+  allowDemoFallback: boolean,
 ): Promise<Account[]> {
   try {
     console.log(`Attempting MT4/MT5 connection to ${brokerName} at ${apiUrl}`);
@@ -290,21 +374,9 @@ async function fetchMT4MT5Accounts(
     });
 
     if (!authResponse.ok) {
-      console.warn(
-        `MT4/MT5 API authentication failed (${authResponse.status}): ${authResponse.statusText}. Using demo data.`,
+      throw new Error(
+        `MT4/MT5 API authentication failed: ${authResponse.status} ${authResponse.statusText}`,
       );
-      // Return demo account for testing
-      return [
-        {
-          account_number: accountId,
-          account_name: `${brokerName} ${platform} Account`,
-          balance: 50000,
-          equity: 50000,
-          currency: "USD",
-          platform,
-          server,
-        },
-      ];
     }
 
     const authData = await authResponse.json();
@@ -322,21 +394,9 @@ async function fetchMT4MT5Accounts(
     });
 
     if (!accountResponse.ok) {
-      console.warn(
+      throw new Error(
         `Failed to fetch account details: ${accountResponse.statusText}`,
       );
-      // Return partial success with demo data
-      return [
-        {
-          account_number: accountId,
-          account_name: `${brokerName} Account`,
-          balance: 0,
-          equity: 0,
-          currency: "USD",
-          platform,
-          server,
-        },
-      ];
     }
 
     const accountData = await accountResponse.json();
@@ -354,7 +414,9 @@ async function fetchMT4MT5Accounts(
     ];
   } catch (error) {
     console.error("Error fetching MT4/MT5 accounts:", error);
-    // Return demo data if API fails
+    if (!allowDemoFallback) {
+      throw error;
+    }
     return [
       {
         account_number: accountId,
@@ -376,6 +438,7 @@ async function fetchCTraderAccounts(
   accountId: string,
   apiSecret: string,
   brokerName: string,
+  allowDemoFallback: boolean,
 ): Promise<Account[]> {
   try {
     // cTrader OAuth2 token request
@@ -393,20 +456,7 @@ async function fetchCTraderAccounts(
     );
 
     if (!tokenResponse.ok) {
-      // If real API fails, return demo account for testing
-      console.warn(
-        `cTrader OAuth failed: ${tokenResponse.statusText}. Using demo data.`,
-      );
-      return [
-        {
-          account_number: accountId,
-          account_name: `${brokerName} cTrader Account`,
-          balance: 50000,
-          equity: 50000,
-          currency: "USD",
-          platform: "cTrader",
-        },
-      ];
+      throw new Error(`cTrader OAuth failed: ${tokenResponse.statusText}`);
     }
 
     const tokenData = await tokenResponse.json();
@@ -444,7 +494,19 @@ async function fetchCTraderAccounts(
     ];
   } catch (error) {
     console.error("Error fetching cTrader accounts:", error);
-    throw error;
+    if (!allowDemoFallback) {
+      throw error;
+    }
+    return [
+      {
+        account_number: accountId,
+        account_name: `${brokerName} cTrader Account (Demo)`,
+        balance: 50000,
+        equity: 50000,
+        currency: "USD",
+        platform: "cTrader",
+      },
+    ];
   }
 }
 
@@ -456,6 +518,7 @@ async function fetchDXTradeAccounts(
   accountId: string,
   apiKey: string,
   brokerName: string,
+  allowDemoFallback: boolean,
 ): Promise<Account[]> {
   try {
     // DXTrade API authentication and account fetch
@@ -472,20 +535,7 @@ async function fetchDXTradeAccounts(
       if (response.status === 401) {
         throw new Error("Invalid DXTrade API key or account ID");
       }
-      // For demo/testing, return mock data if API fails
-      console.warn(
-        `DXTrade API failed: ${response.statusText}. Using demo data.`,
-      );
-      return [
-        {
-          account_number: accountId,
-          account_name: `${brokerName} DXTrade Account`,
-          balance: 100000,
-          equity: 100000,
-          currency: "USD",
-          platform: "DXTrade",
-        },
-      ];
+      throw new Error(`DXTrade API failed: ${response.statusText}`);
     }
 
     const data = await response.json();
@@ -504,7 +554,9 @@ async function fetchDXTradeAccounts(
     }));
   } catch (error) {
     console.error("Error fetching DXTrade accounts:", error);
-    // Return demo data for testing
+    if (!allowDemoFallback) {
+      throw error;
+    }
     return [
       {
         account_number: accountId,
@@ -515,6 +567,212 @@ async function fetchDXTradeAccounts(
         platform: "DXTrade",
       },
     ];
+  }
+}
+
+async function fetchMT4MT5Trades(
+  apiUrl: string,
+  accountId: string,
+  password: string,
+  server: string,
+  allowDemoFallback: boolean,
+): Promise<Trade[]> {
+  try {
+    const authResponse = await fetch(`${apiUrl}/auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        accountId,
+        password,
+        server: server || "default",
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!authResponse.ok) {
+      throw new Error(
+        `MT4/MT5 trade authentication failed: ${authResponse.statusText}`,
+      );
+    }
+
+    const authData = await authResponse.json();
+    const headers = {
+      Authorization: `Bearer ${authData.apiKey}`,
+      "Content-Type": "application/json",
+    };
+
+    const [openResponse, closedResponse] = await Promise.all([
+      fetch(`${apiUrl}/trades?type=open`, {
+        headers,
+        signal: AbortSignal.timeout(5000),
+      }),
+      fetch(`${apiUrl}/trades?type=closed`, {
+        headers,
+        signal: AbortSignal.timeout(5000),
+      }),
+    ]);
+
+    if (!openResponse.ok) {
+      throw new Error(`Failed to fetch open trades: ${openResponse.statusText}`);
+    }
+    if (!closedResponse.ok) {
+      throw new Error(
+        `Failed to fetch closed trades: ${closedResponse.statusText}`,
+      );
+    }
+
+    const [openData, closedData] = await Promise.all([
+      openResponse.json(),
+      closedResponse.json(),
+    ]);
+
+    return [...(openData.trades || []), ...(closedData.trades || [])].map(
+      (trade: any) => ({
+        ticket: String(trade.ticket),
+        symbol: trade.symbol,
+        type: trade.type === 0 || trade.type === "BUY" ? "BUY" : "SELL",
+        lots: trade.volume ?? trade.lots ?? 0,
+        openPrice: trade.openPrice,
+        closePrice: trade.closePrice,
+        profit: trade.profit ?? 0,
+        status: trade.closeTime ? "closed" : "open",
+        openTime: trade.openTime,
+        closeTime: trade.closeTime,
+      }),
+    );
+  } catch (error) {
+    console.error("Error fetching MT4/MT5 trades:", error);
+    if (!allowDemoFallback) {
+      throw error;
+    }
+    return [];
+  }
+}
+
+async function fetchCTraderTrades(
+  accountId: string,
+  apiSecret: string,
+  allowDemoFallback: boolean,
+): Promise<Trade[]> {
+  try {
+    const tokenResponse = await fetch("https://openapi.ctrader.com/v1/auth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grant_type: "client_credentials",
+        client_id: accountId,
+        client_secret: apiSecret,
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error(`cTrader OAuth failed: ${tokenResponse.statusText}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    const headers = {
+      Authorization: `Bearer ${tokenData.access_token}`,
+      "Content-Type": "application/json",
+    };
+
+    const [positionsResponse, dealsResponse] = await Promise.all([
+      fetch(`https://openapi.ctrader.com/v1/accounts/${accountId}/positions`, {
+        headers,
+      }),
+      fetch(`https://openapi.ctrader.com/v1/accounts/${accountId}/deals`, {
+        headers,
+      }),
+    ]);
+
+    if (!positionsResponse.ok) {
+      throw new Error(
+        `Failed to fetch cTrader positions: ${positionsResponse.statusText}`,
+      );
+    }
+    if (!dealsResponse.ok) {
+      throw new Error(
+        `Failed to fetch cTrader deals: ${dealsResponse.statusText}`,
+      );
+    }
+
+    const [positionsData, dealsData] = await Promise.all([
+      positionsResponse.json(),
+      dealsResponse.json(),
+    ]);
+
+    const openTrades = (positionsData.positions || []).map((position: any) => ({
+      ticket: String(position.positionId),
+      symbol: position.symbol || position.symbolId,
+      type: position.tradeSide === "BUY" ? "BUY" : "SELL",
+      lots: (position.volume ?? 0) / 100,
+      openPrice: (position.entryPrice ?? 0) / 100000,
+      profit: (position.profit ?? 0) / 100,
+      status: "open" as const,
+      openTime: new Date(position.createTimestamp).toISOString(),
+    }));
+
+    const closedTrades = (dealsData.deals || [])
+      .filter((deal: any) => deal.dealStatus === "CLOSED")
+      .map((deal: any) => ({
+        ticket: String(deal.dealId),
+        symbol: deal.symbol,
+        type: deal.dealSide === "BUY" ? "BUY" : "SELL",
+        lots: (deal.volume ?? 0) / 100,
+        openPrice: (deal.entryPrice ?? 0) / 100000,
+        closePrice: (deal.exitPrice ?? 0) / 100000,
+        profit: (deal.profit ?? 0) / 100,
+        status: "closed" as const,
+        openTime: new Date(deal.openTimestamp).toISOString(),
+        closeTime: new Date(deal.closeTimestamp).toISOString(),
+      }));
+
+    return [...openTrades, ...closedTrades];
+  } catch (error) {
+    console.error("Error fetching cTrader trades:", error);
+    if (!allowDemoFallback) {
+      throw error;
+    }
+    return [];
+  }
+}
+
+async function fetchDXTradeTrades(
+  apiUrl: string,
+  accountId: string,
+  apiKey: string,
+  allowDemoFallback: boolean,
+): Promise<Trade[]> {
+  try {
+    const response = await fetch(`${apiUrl}/v1/accounts/${accountId}/positions`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "X-Account-ID": accountId,
+        "Content-Type": "application/json",
+        "User-Agent": "TradersConnect/1.0",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`DXTrade positions failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return (data.positions || []).map((position: any) => ({
+      ticket: String(position.id),
+      symbol: position.symbol,
+      type: position.side === "buy" ? "BUY" : "SELL",
+      lots: (position.quantity ?? 0) / 100000,
+      openPrice: position.price,
+      profit: position.unrealizedPnL ?? 0,
+      status: "open" as const,
+      openTime: new Date(position.openedAt).toISOString(),
+    }));
+  } catch (error) {
+    console.error("Error fetching DXTrade trades:", error);
+    if (!allowDemoFallback) {
+      throw error;
+    }
+    return [];
   }
 }
 
@@ -601,6 +859,17 @@ Deno.serve(async (req: Request) => {
           status: 400,
         },
       );
+    }
+
+    if (body.mode === "trades") {
+      const trades = await fetchBrokerTrades(body);
+      return new Response(JSON.stringify({ trades }), {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json",
+        },
+        status: 200,
+      });
     }
 
     const accounts = await connectToBrokerAndFetchAccounts(body);

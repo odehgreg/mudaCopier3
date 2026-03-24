@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { decryptCredentials } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,7 @@ async function syncAccountTrades(accountId: string, userId: string) {
     Deno.env.get("SUPABASE_URL") ?? "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   );
+  let syncJobId: string | null = null;
 
   try {
     // Get account details
@@ -48,7 +50,10 @@ async function syncAccountTrades(accountId: string, userId: string) {
     }
 
     // Decrypt credentials (simplified - in production use proper encryption)
-    const creds = JSON.parse(credentials.encrypted_data);
+    const creds = await decryptCredentials(
+      credentials.encrypted_data,
+      Deno.env.get("CREDENTIAL_ENCRYPTION_KEY") ?? "",
+    );
 
     // Create sync job record
     const { data: syncJob, error: syncError } = await supabase
@@ -65,6 +70,7 @@ async function syncAccountTrades(accountId: string, userId: string) {
     if (syncError) {
       throw new Error(`Failed to create sync job: ${syncError.message}`);
     }
+    syncJobId = syncJob.id;
 
     // Fetch trades from broker API
     const trades = await fetchTradesFromBroker(
@@ -103,20 +109,21 @@ async function syncAccountTrades(accountId: string, userId: string) {
     }
 
     // Update account balance/equity if available
-    if (trades.length > 0) {
-      const latestTrade = trades[trades.length - 1];
-      if (latestTrade.balance !== undefined) {
-        await supabase
-          .from("trading_accounts")
-          .update({
-            balance: latestTrade.balance,
-            equity: latestTrade.equity || latestTrade.balance,
-            last_sync: new Date().toISOString(),
-            sync_status: "success",
-          })
-          .eq("id", accountId);
-      }
-    }
+    const latestTrade = trades[trades.length - 1];
+    await supabase
+      .from("trading_accounts")
+      .update({
+        balance:
+          latestTrade?.balance !== undefined ? latestTrade.balance : account.balance,
+        equity:
+          latestTrade?.equity !== undefined
+            ? latestTrade.equity
+            : account.equity,
+        last_sync: new Date().toISOString(),
+        sync_status: "success",
+        sync_error: null,
+      })
+      .eq("id", accountId);
 
     // Update sync job as completed
     await supabase
@@ -140,7 +147,7 @@ async function syncAccountTrades(accountId: string, userId: string) {
         completed_at: new Date().toISOString(),
         error_message: error instanceof Error ? error.message : "Unknown error",
       })
-      .eq("id", accountId);
+      .eq("id", syncJobId);
 
     throw error;
   }
@@ -160,7 +167,7 @@ async function fetchTradesFromBroker(
   const apiUrl = broker.api_endpoint;
 
   try {
-    // Call the existing fetch-broker-accounts function to get trades
+    // Reuse the broker function, but ask it for trade data explicitly.
     const response = await fetch(
       `${Deno.env.get("SUPABASE_URL")}/functions/v1/fetch-broker-accounts`,
       {
@@ -176,6 +183,8 @@ async function fetchTradesFromBroker(
           server,
           account_id: accountId,
           password,
+          mode: "trades",
+          allow_demo_fallback: false,
           last_sync: lastSync,
         }),
       },
