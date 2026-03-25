@@ -37,28 +37,33 @@ ALTER TABLE brokers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE broker_connections ENABLE ROW LEVEL SECURITY;
 
 -- Broker policies
+DROP POLICY IF EXISTS "Everyone can view brokers" ON brokers;
 CREATE POLICY "Everyone can view brokers"
   ON brokers FOR SELECT
   TO authenticated
   USING (true);
 
 -- Broker connection policies
+DROP POLICY IF EXISTS "Users can view own broker connections" ON broker_connections;
 CREATE POLICY "Users can view own broker connections"
   ON broker_connections FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own broker connections" ON broker_connections;
 CREATE POLICY "Users can insert own broker connections"
   ON broker_connections FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own broker connections" ON broker_connections;
 CREATE POLICY "Users can update own broker connections"
   ON broker_connections FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete own broker connections" ON broker_connections;
 CREATE POLICY "Users can delete own broker connections"
   ON broker_connections FOR DELETE
   TO authenticated

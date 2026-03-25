@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Check, X, Loader } from "lucide-react";
+import { Plus, Trash2, X, Loader } from "lucide-react";
 import Select from "react-select";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -39,7 +39,6 @@ export function AccountsPage() {
   const [selectedBrokerAccounts, setSelectedBrokerAccounts] = useState<
     BrokerAccount[]
   >([]);
-  const [brokerSearchQuery, setBrokerSearchQuery] = useState("");
   // Remove old dropdown state
   const [formData, setFormData] = useState({
     account_name: "",
@@ -55,6 +54,22 @@ export function AccountsPage() {
   useEffect(() => {
     loadData();
   }, [user]);
+
+  const resetForm = () => {
+    setFormData({
+      account_name: "",
+      platform: "MT5",
+      broker_id: "",
+      broker_name: "",
+      server: "",
+      account_id: "",
+      account_password: "",
+      is_master: false,
+    });
+    setBrokerServers([]);
+    setSelectedBrokerAccounts([]);
+    setShowAddForm(false);
+  };
 
   const loadData = async () => {
     if (!user) return;
@@ -215,37 +230,25 @@ export function AccountsPage() {
 
       if (accountError) throw accountError;
 
-      // Store credentials securely
-      const credentialsJson = JSON.stringify({
-        account_id: formData.account_id,
-        password: formData.account_password,
-      });
+      const { error: credentialsError } = await supabase.functions.invoke(
+        "store-account-credentials",
+        {
+          body: {
+            trading_account_id: accountData.id,
+            credentials: {
+              account_id: formData.account_id,
+              password: formData.account_password,
+            },
+          },
+        },
+      );
 
-      const { error: credError } = await supabase
-        .from("account_credentials")
-        .insert({
-          account_id: accountData.id,
-          encrypted_data: credentialsJson, // In production, encrypt this
-        });
-
-      if (credError) {
-        console.error("Failed to store credentials:", credError);
-        // Don't fail the whole operation, but log the error
+      if (credentialsError) {
+        await supabase.from("trading_accounts").delete().eq("id", accountData.id);
+        throw credentialsError;
       }
 
-      // Reset form
-      setFormData({
-        account_name: "",
-        platform: "MT5",
-        broker_id: "",
-        broker_name: "",
-        server: "",
-        account_id: "",
-        account_password: "",
-        is_master: false,
-      });
-      setShowAddForm(false);
-      setSelectedBrokerAccounts([]);
+      resetForm();
 
       // Refresh accounts list
       loadData();
@@ -257,30 +260,6 @@ export function AccountsPage() {
         `Failed to add account: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
-  
-
-      alert("Account added successfully!");
-      setFormData({
-        account_name: "",
-        platform: "MT5",
-        broker_id: "",
-        broker_name: "",
-        server: "",
-        account_id: "",
-        account_password: "",
-        is_master: false,
-      });
-      setBrokerServers([]);
-      setSelectedBrokerAccounts([]);
-      setShowAddForm(false);
-      loadData();
-    } 
-    // catch (error) {
-    //   console.error("Error adding account:", error);
-    //   alert(
-    //     `Failed to add account: ${error instanceof Error ? error.message : "Unknown error"}`,
-    //   );
-    // }
   };
 
   const handleDeleteAccount = async (id: string) => {
@@ -571,6 +550,7 @@ export function AccountsPage() {
                   account_name: "",
                   platform: "MT5",
                   broker_id: "",
+                  broker_name: "",
                   server: "",
                   account_id: "",
                   account_password: "",

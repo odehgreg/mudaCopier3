@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
 import {
   Plus,
-  Trash2,
   Check,
   X,
-  Play,
-  Pause,
-  Clock,
-  TrendingUp,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
-import { useTradeCopy, useCopyStatistics } from "../hooks/useTradesCopy";
 import { CopierConfigCard } from "../components/CopierConfigCard";
 import { Modal } from "../components/Modal";
 

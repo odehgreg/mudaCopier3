@@ -111,7 +111,7 @@ export class MockBrokerAdapter extends BrokerAdapter {
   /**
    * Close a mock trade
    */
-  async closeTrade(ticket: string, volume: number = 1.0): Promise<boolean> {
+  async closeTrade(ticket: string, _volume: number = 1.0): Promise<boolean> {
     const trade = this.mockTrades.find((t) => t.ticket === ticket);
     if (!trade) return false;
 
