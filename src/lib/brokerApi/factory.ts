@@ -25,6 +25,18 @@ export class BrokerFactory {
     OANDA: "https://api.oanda.com/v3",
     "XM.COM": "https://api.xmtrading.com/v1",
     "IC Markets": "https://api.icmarkets.com/v1",
+    Octa: "https://mt4-api.octafx.com",
+    HFM: "https://mt4-api.hfm.com",
+    Tickmill: "https://mt4-api.tickmill.com",
+    "FP Markets": "https://mt4-api.fpmarkets.com",
+    Vantage: "https://mt4-api.vantagemarkets.com",
+    Axi: "https://mt4-api.axi.com",
+    Eightcap: "https://mt4-api.eightcap.com",
+    Admirals: "https://mt4-api.admirals.com",
+    "BlackBull Markets": "https://mt4-api.blackbull.com",
+    BDSwiss: "https://mt4-api.bdswiss.com",
+    "ACY Securities": "https://mt4-api.acy.com",
+    Orbex: "https://mt4-api.orbex.com",
 
     // DXTrade Brokers
     DXTrade: "https://api.dxtrade.com/v1",

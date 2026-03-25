@@ -65,6 +65,27 @@ const brokerApiEndpoints: { [key: string]: { url: string; type: string } } = {
   "IC Markets": { url: "https://mt4-api.icmarkets.com", type: "MT4_BRIDGE" },
   Pepperstone: { url: "https://mt4-api.pepperstone.com", type: "MT4_BRIDGE" },
   FxPro: { url: "https://mt4-api.fxpro.com", type: "MT4_BRIDGE" },
+  Octa: { url: "https://mt4-api.octafx.com", type: "MT4_BRIDGE" },
+  HFM: { url: "https://mt4-api.hfm.com", type: "MT4_BRIDGE" },
+  Tickmill: { url: "https://mt4-api.tickmill.com", type: "MT4_BRIDGE" },
+  "FP Markets": {
+    url: "https://mt4-api.fpmarkets.com",
+    type: "MT4_BRIDGE",
+  },
+  Vantage: {
+    url: "https://mt4-api.vantagemarkets.com",
+    type: "MT4_BRIDGE",
+  },
+  Axi: { url: "https://mt4-api.axi.com", type: "MT4_BRIDGE" },
+  Eightcap: { url: "https://mt4-api.eightcap.com", type: "MT4_BRIDGE" },
+  Admirals: { url: "https://mt4-api.admirals.com", type: "MT4_BRIDGE" },
+  "BlackBull Markets": {
+    url: "https://mt4-api.blackbull.com",
+    type: "MT4_BRIDGE",
+  },
+  BDSwiss: { url: "https://mt4-api.bdswiss.com", type: "MT4_BRIDGE" },
+  "ACY Securities": { url: "https://mt4-api.acy.com", type: "MT4_BRIDGE" },
+  Orbex: { url: "https://mt4-api.orbex.com", type: "MT4_BRIDGE" },
 
   // cTrader brokers
   Spotware: { url: "https://openapi.ctrader.com", type: "CTRADER" },
